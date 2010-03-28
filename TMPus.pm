@@ -8,7 +8,7 @@ use warnings;
 use Data::ParseBinary;
 use TMRM;
 use TMSgm;
-use TMSourcePacket;	# needed for pus time in MTL..
+use TMCommon;	
 
 our $pus_AckOk = Struct("AckOk",
 	UBInt16("TC Packet Id"),
@@ -123,8 +123,7 @@ our $pus_detailed_schedule = Struct("Detailed Schedule",
 	UBInt16("N"),
 	Array(sub { $_->ctx->{"N"}},
 	   Struct("TC",
-	   #FIXME..
-		$Data::ParseBinary::FileSystem::TMSourcePacket::Sat_Time,
+		$Sat_Time,
 		UBInt16("Packet ID"),
 		UBInt16("Packet Sequence Control"),
 		UBInt16("TC Length"),
@@ -139,11 +138,10 @@ our $pus_summary_schedule = Struct("Summary Schedule",
 	UBInt16("N"),
 	Array(sub { $_->ctx->{"N"}},
 	   Struct("TC",
-	   #FIXME..
-		$Data::ParseBinary::FileSystem::TMSourcePacket::Sat_Time,
+		$Sat_Time,
 		BitStruct("Pidb",
 			Padding(1),
-			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
+			$Pid
 		),
 		BitStruct("SSCb",
 			Padding(2),
@@ -155,15 +153,15 @@ our $pus_summary_schedule = Struct("Summary Schedule",
 
 our $pus_command_schedule_status = Struct("Command Schedule Status",
 	UBInt8("N"),
-	Array(sub { $_->ctx->{"N"}},Struct("Status",
-#FIXME
-#		BitStruct("Pidb",
-#			Padding(1),
-#			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
-#		),
-		UBInt8("Pid"),
+	Array(sub { $_->ctx->{"N"}},
+         Struct("Status",
+		BitStruct("Pidb",
+			Padding(1),
+			$Pid
+		),
 		UBInt8("Status")
-	))
+	 )
+	)
 );
 
 #TODO Criteria
@@ -193,7 +191,7 @@ our $pus_current_monitoring_oo_list= Struct("Current Monitoring OO List",
 		UBInt32("Limit crossed"),
 		UBInt8("Previous Checking Status"),
 		UBInt8("Current Checking Status"),
-		$Data::ParseBinary::FileSystem::TMSourcePacket::Sat_Time,
+		$TMSourcePacket::Sat_Time,
 	)
 	)
 );
@@ -206,18 +204,17 @@ our $pus_check_transition= Struct("Check Transition",
 		UBInt32("Limit crossed"),
 		UBInt8("Previous Checking Status"),
 		UBInt8("Current Checking Status"),
-		$Data::ParseBinary::FileSystem::TMSourcePacket::Sat_Time,
+		$TMSourcePacket::Sat_Time,
 	)
 );
 
 our $pus_enabled_tm_sourcepacket= Struct("Enabled TM sourcepacket",
 	UBInt8("N1"),
 	Array(sub { $_->ctx->{"N1"}},Struct("TMSourcePacket",
-#FIXME		BitStruct("Pidb",
-#			Padding(1),
-#			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
-#		),
-		UBInt8("PID"),
+		BitStruct("Pidb",
+			Padding(1),
+			$Pid
+		),
 		UBInt8("FStat"),
 		UBInt8("N2"),
 		Array(sub { $_->ctx->{"N2"}},Struct("Types",
@@ -235,11 +232,10 @@ our $pus_enabled_tm_sourcepacket= Struct("Enabled TM sourcepacket",
 our $pus_enabled_hk= Struct("Enabled HK",
 	UBInt8("N1"),
 	Array(sub { $_->ctx->{"N1"}},Struct("Pids",
-#FIXME		BitStruct("Pidb",
-#			Padding(1),
-#			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
-#		),
-		UBInt8("PID"),
+		BitStruct("Pidb",
+			Padding(1),
+			$Pid
+		),
 		UBInt8("N2"),
 		Array(sub { $_->ctx->{"N2"}},Struct("Sids",
 			UBInt8("SID"),
@@ -253,7 +249,7 @@ our $pus_enabled_event= Struct("Enabled Events",
 	Array(sub { $_->ctx->{"N1"}},
 		BitStruct("Pidb",
 			Padding(1),
-			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
+			$Pid
 		),
 		UBInt8("N2"),
 		Array(sub { $_->ctx->{"N2"}},
@@ -265,11 +261,10 @@ our $pus_enabled_event= Struct("Enabled Events",
 our $pus_storage_selection_definition= Struct("Storage Selection definition",
 	UBInt8("N1"),
 	Array(sub { $_->ctx->{"N1"}},Struct("Pids",
-#FIXME		BitStruct("Pidb",
-#			Padding(1),
-#			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
-#		),
-		UBInt8("PID"),
+		BitStruct("Pidb",
+			Padding(1),
+			$Pid
+		),
 		UBInt8("StoreId1"),
 		UBInt8("N2"),
 		Array(sub { $_->ctx->{"N2"}},Struct("Types",
@@ -310,11 +305,10 @@ our $pus_hk_format= Struct("HK Format",
 our $pus_sid_storage_selection_definition= Struct("Sid Storage Selection definition",
 	UBInt8("N1"),
 	Array(sub { $_->ctx->{"N1"}},Struct("Pids",
-		UBInt8("PID"),
-#		BitStruct("Pidb",
-#			Padding(1),
-#			$Data::ParseBinary::FileSystem::TMSourcePacket::Pid
-#		),
+		BitStruct("Pidb",
+			Padding(1),
+			$Pid
+		),
 		UBInt8("N2"),
 		Array(sub { $_->ctx->{"N2"}},Struct("Sids",
 			UBInt16("SID"),
@@ -339,8 +333,7 @@ our $pus_OBCP_dump = Struct("OBCP dump",
 	   UBInt8("Procedure Step"),
 	   UBInt16("Delay"),
 	   Struct("Tc",
-	   #FIXME..
-		$Data::ParseBinary::FileSystem::TMSourcePacket::Sat_Time,
+		$Sat_Time,
 		UBInt16("Packet ID"),
 		UBInt16("Packet Sequence Control"),
 		UBInt16("TC Length"),
@@ -356,7 +349,10 @@ our $pus_event_detection_list= Struct("Event detection List",
 	UBInt8("N"),
 	Array(sub { $_->ctx->{"N"}},
 	   Struct("TC",
-		UBInt8("PID"),
+		BitStruct("Pidb",
+			Padding(1),
+			$Pid
+		),
 		UBInt16("EID"),
 		UBInt8("Action Status"),
 		UBInt16("Packet ID"),

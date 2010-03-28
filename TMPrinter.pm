@@ -81,7 +81,7 @@ sub TMPrint {
 			print "NParam=$N\n";
 			for(my $i=0;$i<$N;$i++) {
 				my $cSts=$Pus_Data->{'Status'}->[$i];
-				my $PID=$cSts->{'Pid'};
+				my $PID=$cSts->{'Pidb'}->{'PID'};
 				my $Status=$cSts->{'Status'};
 				print "Pid $PID  Status=$Status\n";
 			}
@@ -106,7 +106,7 @@ sub TMPrint {
 			print "Number of TM Source(N1)=$N1\n";
 			for(my $i=0;$i<$N1;$i++) {
 				my $cTM=$Pus_Data->{'TMSourcePacket'}->[$i];
-				my $PID=$cTM->{'PID'};
+				my $PID=$cTM->{'Pidb'}->{'PID'};
 				my $FStat=$cTM->{'FStat'};
 				my $N2=$cTM->{'N2'};
 				print "Pid=$PID  FStat=$FStat  Number of Type(N2)=$N2\n";
@@ -130,7 +130,7 @@ sub TMPrint {
 			print "Number of Pids(N1)=$N1\n";
 			for(my $i=0;$i<$N1;$i++) {
 				my $cPid=$Pus_Data->{'Pids'}->[$i];
-				my $PID=$cPid->{'PID'};
+				my $PID=$cPid->{'Pidb'}->{'PID'};
 				my $N2=$cPid->{'N2'};
 				print "Pid=$PID  Number of Sids(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
@@ -146,7 +146,7 @@ sub TMPrint {
 			print "Number of Pids(N1)=$N1\n";
 			for(my $i=0;$i<$N1;$i++) {
 				my $cTM=$Pus_Data->{'Pids'}->[$i];
-				my $PID=$cTM->{'PID'};
+				my $PID=$cTM->{'Pidb'}->{'PID'};
 				my $StoreId1=$cTM->{'StoreId1'};
 				my $N2=$cTM->{'N2'};
 				print "Pid=$PID  StoreId1=$StoreId1  Number of Type(N2)=$N2\n";
@@ -185,7 +185,7 @@ sub TMPrint {
 			for(my $i=0;$i<$N;$i++) {
 				my $TC=$Pus_Data->{'TC'}->[$i];
 #				my $TC=$$Pus_Data{'TC'}[$i];
-				my $PID=$TC->{'PID'};
+				my $PID=$TC->{'Pidb'}->{'PID'};
 				my $EID=$TC->{'EID'};
 				my $ActSts=$TC->{'Action Status'};
 				my $TCType=$TC->{'Service Type'};

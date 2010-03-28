@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Data::ParseBinary;
 
+use TMCommon;
 use TMPus;
 use TMRM;
 
@@ -12,20 +13,6 @@ use TMRM;
 #verify tmsource crc g(x)=x16+x12+x5+1 , inited with all 1s , on entire packet (except PEC itself)
 #sub are not needed by compilator!
 
-
-our $Sat_Time = Struct("Sat_Time",
-	UBInt32("Seconds"),
-	UBInt16("SubSeconds"),
-	Value("OBT", sub { $_->ctx->{"Seconds"} + $_->ctx->{"SubSeconds"}/65535 } )
-);
-
-my $Pid = Enum(BitField("Pid",7),
-                SYS => 0x10,
-                AOC => 0x11,
-                PF  => 0x12,
-                PL  => 0x13,
-        	_default_ => $DefaultPass
-);
 
 my $Apid = BitStruct("Apid",
 	$Pid,
@@ -116,7 +103,7 @@ our $scos_tmsourcepacket_parser= Struct("Scos TM Source Packet",
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($Sat_Time $Pid $tmsourcepacket_parser $scos_tmsourcepacket_parser);
+our @EXPORT = qw($tmsourcepacket_parser $scos_tmsourcepacket_parser);
 
 1;
 

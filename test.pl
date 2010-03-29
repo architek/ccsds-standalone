@@ -12,11 +12,11 @@ local $/=undef;
 $buf=<STDIN>;
 }
 
-$buf =~ s/^..........//gm;
+$buf =~ s/^.....//gm;
 $buf =~ s/ |\n//g;
 
 #print "BUF IS <$buf>\n";
 my $pstring = pack (qq{H*},qq{$buf});
-my $decoded=$scos_tmsourcepacket_parser->parse($pstring);
+my $decoded=$tmsourcepacket_parser->parse($pstring);
 #print Dumper($decoded);
 TMPrint($decoded);

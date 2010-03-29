@@ -27,7 +27,11 @@ sub TMPrint {
 
 	my ($tm) = shift;
 	
-	my $Src_Packet=$tm->{'TM Source Packet'};
+	my $Src_Packet=$tm;
+	if (exists $tm->{'TM Source Packet'}) {
+	# Then $tm is a scos packet, and we go directly to the TM Packet
+		$Src_Packet=$tm->{'TM Source Packet'};
+	}
 	my $Pkt_Data=$Src_Packet->{'Packet Data Field'};
 	my $Pus_Header=$Pkt_Data->{'TMSourceSecondaryHeader'};
 	
@@ -90,6 +94,18 @@ sub TMPrint {
 					print '-' x 40 . "\n";
 				}
 				else { print "Undecoded Function\n" . Dumper($Function_Data); }
+			}
+		}
+		case "8,141" {
+			my $FID=$Pus_Data->{'Function Id'};
+			my $NrCurSlice=$Pus_Data->{'Nr Current Slice'};
+			my $TotSlice=$Pus_Data->{'Total Slice'};
+			my $Length=$Pus_Data->{'Length'};
+			print "Sliced Function Report : Function ID=$FID  Slice:$NrCurSlice/$TotSlice Length of Datas:$Length\n";
+			my $dta=$Pus_Data->{'Data'};
+			for(my $i=0;$i<$Length;$i+=32){
+				my $j=$i+32; $j=$Length-1 if ($j>$Length-1);
+				print sprintf("%08x : ",$i). join(' ',	map { sprintf "%02X",$_} @$dta[$i..$j]) . "\n";	
 			}
 		}
 		case "11,19" {

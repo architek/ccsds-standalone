@@ -114,6 +114,7 @@ sub pus_sliced {
 		UBInt8("Total Slice"),
 #As sliced are only parseable on a whole when all slices are read, this will not be decoded..
 #One example is shown for reading slice 1 of sgm group 47 (list of TM packets defined) but that's just a proof of concept
+		Value("Length",sub { $_->ctx(2)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-3}),
 		Switch("Data",sub { $_->ctx->{'Function Id'} },
 			{
 				110 => $sgm_read

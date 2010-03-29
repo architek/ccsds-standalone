@@ -119,7 +119,7 @@ sub pus_sliced {
 			{
 				110 => $sgm_read
 			},
-			default => Array(sub { $_->ctx(2)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-3},UBInt8("Params"))
+			default => Array(sub{$_->ctx->{'Length'}},UBInt8("Params"))
 		)
 	);
 }

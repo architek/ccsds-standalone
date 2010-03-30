@@ -21,34 +21,40 @@ sub verify_crc {
 	return $crc eq $crc_in;
 }
 
-my $buf=();
-my $decoded=();
-my $pstring=();
-
-#Remove the typical addresses on the left
-my $line=(); 
+$/ = ''; # paragraph reads
 while (<STDIN>) {
+  chomp;
+  my $buf=();
+  my $decoded=();
+  my $pstring=();
+
+  my @lines=split(/\n/);
+
+  #Remove the typical addresses on the left
+  my $line=(); 
+  foreach (@lines) {
 	s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
 #split /[\s:]+/, "00000:61 38 AA 4B B4 F8 00 00 96 01", 2 )[1]
  	$line=$1;
 	$line =~ s/ //g;
 	$buf=$buf.$line;
-}
-#print "BUF IS <$buf>\n";
+  }
+  #print "BUF IS <$buf>\n";
 
-$pstring = pack (qq{H*},qq{$buf});
+  $pstring = pack (qq{H*},qq{$buf});
 
-#first lets try on real tmsourcepacket 
-if (verify_crc $buf) {
+  #first lets try on real tmsourcepacket 
+  if (verify_crc $buf) {
 	$decoded=$tmsourcepacket_parser->parse($pstring);
-} 
-elsif (verify_crc substr $buf,40) {
-#now lets try on scosheader+tmsourcepacket
+  } 
+  elsif (verify_crc substr $buf,40) {
+  #now lets try on scosheader+tmsourcepacket
 	$decoded=$scos_tmsourcepacket_parser->parse($pstring);
-} else {
-#not recognized
-die("Crc check failed, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
-} 
+  } else {
+  #not recognized
+  die("Crc check failed, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
+  } 
 
-#print Dumper($decoded);
-TMPrint($decoded);
+  #print Dumper($decoded);
+  TMPrint($decoded);
+}

@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use Data::ParseBinary;
 
+#TODO Decode bitfields
 
 # • Time stamp
 # • Conditioned alarms leading to reconfiguration

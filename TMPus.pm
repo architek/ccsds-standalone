@@ -15,9 +15,6 @@
 #
 
 #tc 3,131!!!!
-#Erreurs sur le service 15:
-# - N=0 renvoie que 5 PS
-# - HK Format contient N, pas necessaire si fixe
 package TMPus;
 use strict;
 use warnings;

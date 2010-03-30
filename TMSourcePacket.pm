@@ -25,8 +25,6 @@ use TMPus;
 use TMRM;
 
 #TODO
-#8,140
-#verify tmsource crc g(x)=x16+x12+x5+1 , inited with all 1s , on entire packet (except PEC itself)
 #sub are not needed by compilator!
 
 

@@ -8,16 +8,23 @@ use Digest::CRC qw(crcccitt);
 
 use TMSourcePacket qw($tmsourcepacket_parser $scos_tmsourcepacket_parser); 
 use TMPrinter; 
-#$Data::ParseBinary::print_debug_info=1;
+
+my $mdebug=0;
+my $nblocks=0;
+$mdebug=1 if exists $ARGV[0];
+
+$Data::ParseBinary::print_debug_info=1 if exists $ARGV[0];
 
 #TODO integrate CRC as MAGIC in TMSourcePacket and loop on parsers
 
 #TODO change this to get correct parameters
 sub verify_crc {
 #	(my $crc_in,my $data)=@_;
+	print "Included Crc:" . substr($_[0],-4) . "\n" if $mdebug;
 	(my $data, my $crc_in) =(substr($_[0] , 0, -4), hex substr ($_[0],-4));
  	my $sdata=pack("H*",$data);
 	my $crc=crcccitt("$sdata");
+	print "Calculated Crc:" . sprintf("%x",$crc) . "\n" if $mdebug;
 	return $crc eq $crc_in;
 }
 
@@ -27,7 +34,10 @@ while (<STDIN>) {
   my $buf=();
   my $decoded=();
   my $pstring=();
-
+  $nblocks++;
+  
+  tr/A-F/a-f/;
+  print "BUF IS <$_>\n" if $mdebug;
   my @lines=split(/\n/);
 
   #Remove the typical addresses on the left
@@ -39,7 +49,7 @@ while (<STDIN>) {
 	$line =~ s/ //g;
 	$buf=$buf.$line;
   }
-  #print "BUF IS <$buf>\n";
+  print "BUF IS <$buf>\n" if $mdebug;
 
   $pstring = pack (qq{H*},qq{$buf});
 
@@ -52,7 +62,7 @@ while (<STDIN>) {
 	$decoded=$scos_tmsourcepacket_parser->parse($pstring);
   } else {
   #not recognized
-  die("Crc check failed, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
+  die("Crc check failed at block $nblocks, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
   } 
 
   #print Dumper($decoded);

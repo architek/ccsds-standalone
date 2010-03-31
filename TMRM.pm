@@ -61,10 +61,10 @@ our $RMLogEntry = Struct("RMLogEntry",
 );
 
 our $RMLog = Struct("RMLog",
-	Enum(UBInt8("RMId"),
-		RM_A=>0,
-		RM_B=>1
-	),
+#	Enum(UBInt8("RMId"),
+#		RM_A=>0,
+#		RM_B=>1
+#	),
 	UBInt32("Pointer"),
 	Array(16, $RMLogEntry)
 );

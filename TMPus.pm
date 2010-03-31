@@ -183,7 +183,7 @@ our $pus_current_monitoring_list= Struct("Current Monitoring List",
 	UBInt8("Monitoring Status"),
 	UBInt8("Maximum Reporting delay"),
 	UBInt8("N"),
-	Array(sub { $_->ctx->{"N"}},
+	Array(sub { $_->ctx->{"N"}}, Struct("Monitorings",
 		UBInt8("Monitoring Id"),
 		UBInt32("ParamId"),
 		UBInt32("Validity ParamId"),
@@ -192,7 +192,7 @@ our $pus_current_monitoring_list= Struct("Current Monitoring List",
 		UBInt8("Monitoring Status"),
 		UBInt8("Check Type"),
 		Array(12,UBInt8("Monitoring Criteria"))
-	)
+	))
 );
 
 #TODO Checking status is enum
@@ -205,21 +205,21 @@ our $pus_current_monitoring_oo_list= Struct("Current Monitoring OO List",
 		UBInt32("Limit crossed"),
 		UBInt8("Previous Checking Status"),
 		UBInt8("Current Checking Status"),
-		$TMSourcePacket::Sat_Time,
+		$Sat_Time,
 	)
 	)
 );
 our $pus_check_transition= Struct("Check Transition",
 	UBInt16("N"),
-	Array(sub { $_->ctx->{"N"}},
+	Array(sub { $_->ctx->{"N"}}, Struct("Limits",
 		UBInt32("ParamId"),
 		UBInt32("Mask"),
 		UBInt32("Parameter Value"),
 		UBInt32("Limit crossed"),
 		UBInt8("Previous Checking Status"),
 		UBInt8("Current Checking Status"),
-		$TMSourcePacket::Sat_Time,
-	)
+		$Sat_Time,
+	))
 );
 
 our $pus_enabled_tm_sourcepacket= Struct("Enabled TM sourcepacket",
@@ -260,17 +260,17 @@ our $pus_enabled_hk= Struct("Enabled HK",
 
 our $pus_enabled_event= Struct("Enabled Events",
 	UBInt8("N1"),
-	Array(sub { $_->ctx->{"N1"}},
+	Array(sub { $_->ctx->{"N1"}},Struct("Pids",
 		BitStruct("Pidb",
 			Padding(1),
 			$Pid
 		),
 		UBInt8("N2"),
-		Array(sub { $_->ctx->{"N2"}},
+		Array(sub { $_->ctx->{"N2"}}, Struct("Eids",
 			UBInt16("EID"),
 			UBInt8("FStat")
-		),
-	)
+		)),
+	)),
 );
 our $pus_storage_selection_definition= Struct("Storage Selection definition",
 	UBInt8("N1"),
@@ -333,17 +333,17 @@ our $pus_sid_storage_selection_definition= Struct("Sid Storage Selection definit
 
 our $pus_OBCP_list= Struct("OBCP List",
 	UBInt8("NProc"),
-	Array(sub { $_->ctx->{"NProc"}},
+	Array(sub { $_->ctx->{"NProc"}}, Struct("Procedures",
 		UBInt8("ProcedureId"),
 		UBInt8("Status"),
 		UBInt8("Position")
-	)
+	))
 );
 
 our $pus_OBCP_dump = Struct("OBCP dump",
 	UBInt8("Procedure Id"),
 	UBInt8("Procedure Steps"),
-	Array(sub { $_->ctx->{"Procedure Steps"}},
+	Array(sub { $_->ctx->{"Procedure Steps"}},Struct("Steps",
 	   UBInt8("Procedure Step"),
 	   UBInt16("Delay"),
 	   Struct("Tc",
@@ -355,7 +355,7 @@ our $pus_OBCP_dump = Struct("OBCP dump",
 		Array(sub { 1+$_->ctx->{"TC Length"}},UBInt8("TC Application Data")),
 		UBInt16("TC Packet Error Control")
 	   )
-	)
+	))
 );
 
 #Only mapid 1 are allowed, meaning DFH is always true
@@ -387,7 +387,7 @@ our $pus_event_detection_list= Struct("Event detection List",
 sub pus_parameter_report {
 	return Struct("Parameter Report",
 		UBInt8("NPar"),
-		Array(sub { $_->ctx(2)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-1},UBInt32("Params"))
+		Array(sub { $_->ctx(2)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-1},UBInt8("Params"))
 	);
 }
 

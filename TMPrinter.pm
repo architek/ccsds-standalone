@@ -81,7 +81,7 @@ sub TMPrint {
 					my $Entry=$Function_Data->{'RMLogEntry'};
 					print "RM Log  Pointer:$Ptr\n";
 					for(my $i=0;(my $cTimeStamp=(my $cEntry=$$Entry[$i])->{'TimeStamp'})!=0;$i++) {
-						print '-' x 40 ."\n|                Entry $i               |\n".'-' x 40 . "\n";
+						print '-' x 40 ."\n|             Entry $i at $cTimeStamp            |\n".'-' x 40 . "\n";
 						my $cSts=$cEntry->{'Status Input'};
 						my $cCond=$cEntry->{'Conditioned Alarm'};
 						my $cAtmp=$cEntry->{'Attempt index'};

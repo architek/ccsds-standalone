@@ -26,10 +26,20 @@ our $Sat_Time = Struct("Sat_Time",
 );
 
 our $Pid = Enum(BitField("PID",7),
+		TIME => 0x0,
                 SYS => 0x10,
                 AOC => 0x11,
                 PF  => 0x12,
                 PL  => 0x13,
+		PFSUA_STMTC => 0x22,
+		PFSUA_TMTC => 0x24,
+		PFSUB_STMTC => 0x2A,
+		PFSUB_TMTC => 0x2C,
+		PLSU_C_Band => 0x32,
+		PLSU_PRS => 0x33,
+		PLSU_TMTC => 0x34,
+		NSGU_S => 0x40,
+		NSGU_L => 0x48,
         	_default_ => $DefaultPass
 );
 

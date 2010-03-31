@@ -43,6 +43,7 @@ while (<STDIN>) {
   #Remove the typical addresses on the left
   my $line=(); 
   foreach (@lines) {
+	next if /^#/;
 	s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
 #split /[\s:]+/, "00000:61 38 AA 4B B4 F8 00 00 96 01", 2 )[1]
  	$line=$1;
@@ -65,6 +66,9 @@ while (<STDIN>) {
   die("Crc check failed at block $nblocks, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
   } 
 
+  print "/" . "-" x 100 . "\n";
   #print Dumper($decoded);
   TMPrint($decoded);
+  print "\\" . "-" x 100 . "\n";
+  print "\n";
 }

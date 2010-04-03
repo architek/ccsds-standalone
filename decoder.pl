@@ -17,15 +17,19 @@ $Data::ParseBinary::print_debug_info=1 if exists $ARGV[0];
 
 #TODO integrate CRC as MAGIC in TMSourcePacket and loop on parsers
 
-#TODO change this to get correct parameters
 sub verify_crc {
-#	(my $crc_in,my $data)=@_;
-	print "Included Crc:" . substr($_[0],-4) . "\n" if $mdebug;
-	(my $data, my $crc_in) =(substr($_[0] , 0, -4), hex substr ($_[0],-4));
+	(my $crc_in,my $data)=@_;
+  	$crc_in =~ tr/A-F/a-f/;
  	my $sdata=pack("H*",$data);
 	my $crc=crcccitt("$sdata");
 	print "Calculated Crc:" . sprintf("%x",$crc) . "\n" if $mdebug;
 	return $crc eq $crc_in;
+}
+
+sub tm_verify_crc {
+	print "Included Crc:" . substr($_[0],-4) . "\n" if $mdebug;
+	(my $data, my $crc_in) =(substr($_[0] , 0, -4), hex substr ($_[0],-4));
+	return verify_crc($crc_in,$data);
 }
 
 $/ = ''; # paragraph reads
@@ -36,7 +40,6 @@ while (<STDIN>) {
   my $pstring=();
   $nblocks++;
   
-  tr/A-F/a-f/;
   print "BUF IS <$_>\n" if $mdebug;
   my @lines=split(/\n/);
 
@@ -55,15 +58,15 @@ while (<STDIN>) {
   $pstring = pack (qq{H*},qq{$buf});
 
   #first lets try on real tmsourcepacket 
-  if (verify_crc $buf) {
+  if (tm_verify_crc $buf) {
 	$decoded=$tmsourcepacket_parser->parse($pstring);
   } 
-  elsif (verify_crc substr $buf,40) {
+  elsif (tm_verify_crc substr $buf,40) {
   #now lets try on scosheader+tmsourcepacket
 	$decoded=$scos_tmsourcepacket_parser->parse($pstring);
   } else {
   #not recognized
-  die("Crc check failed at block $nblocks, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
+  	die("Crc check failed at block $nblocks, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
   } 
 
   print "/" . "-" x 100 . "\n";

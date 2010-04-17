@@ -40,6 +40,20 @@ our $sgm_read = Struct ("SGM_Slice",
 					UBInt32("ParaList")
 				  )
 				)
+			      ),
+			46 => Struct("Group 46",
+				UBInt32("Offset"),
+				UBInt32("Length2"),
+				UBInt32("Validity"),
+				UBInt32("CrcGroup"),
+
+				UBInt32("Coarse OBT"),
+				UBInt32("SubSeconds OBT"),
+				UBInt32("ASW Start Counter"),
+				UBInt32("Last SC Mode"),
+				UBInt32("FDIR Level 2"),
+				UBInt32("Last Active PM"),
+				UBInt32("PM Configuration"),
 			      )
 		},
 		default => $DefaultPass,

@@ -104,6 +104,30 @@ our $pus_function_status = Struct("Function Status",
 	)
 );
 
+our $sw_error_log = Struct("SW Error Log",
+	UBInt16("SErr_Count"),
+	Array(sub { $_->ctx->{"SErr_Count"}}, 
+		Struct("Errors",
+			UBInt32("SERR_LOG_SW_ERR_TIMESTAMP_S"),
+			UBInt16("SERR_LOG_SW_ERR_TIMESTAMP_SUBS"),
+			String("SERR_LOG_SW_ERR_FILE_NAME",14),
+			UBInt32("SERR_LOG_SW_ERR_TASK_NAME"),
+			UBInt32("SERR_LOG_SW_ERR_FILE_LINE"),
+			UBInt32("SERR_LOG_SW_ERR_USER_DATA1"),
+			UBInt32("SERR_LOG_SW_ERR_USER_DATA2"),
+			UBInt32("SERR_LOG_SW_ERR_USER_DATA3"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_1"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_2"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_3"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_4"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_5"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_6"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_7"),
+			UBInt32("SERR_LOG_SW_ERR_CALL_TRACE_8")
+		),
+	),
+);
+
 sub pus_sliced {
 	return Struct("Sliced",
 		UBInt8("Function Id"),
@@ -111,10 +135,11 @@ sub pus_sliced {
 		UBInt8("Total Slice"),
 #As sliced are only parseable on a whole when all slices are read, this will not be decoded..
 #One example is shown for reading slice 1 of sgm group 47 (list of TM packets defined) but that's just a proof of concept
-		Value("Length",sub { $_->ctx(2)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-3}),
+		Value("Length",sub { $_->ctx(3)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-3}),
 		Switch("Data",sub { $_->ctx->{'Function Id'} },
 			{
-				110 => $sgm_read
+				110 => $sgm_read,
+				152 => $sw_error_log,
 			},
 			default => Array(sub{$_->ctx->{'Length'}},UBInt8("Params"))
 		)

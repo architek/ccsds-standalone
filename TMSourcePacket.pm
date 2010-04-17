@@ -63,10 +63,9 @@ our $tmsourcepacket_parser = Struct("TM Source Packet",
     ),
 
     Struct("Packet Data Field",
-	If ( sub { $_->ctx(1)->{"Packet Header"}->{"Packet Id"}->{"DFH Flag"} },
-		$TMSourceSecondaryHeader,
-        ),
-	Switch("PusData", sub { join(',',$_->ctx->{TMSourceSecondaryHeader}->{"Service Type"},$_->ctx->{TMSourceSecondaryHeader}->{"Service Subtype"})},
+	If ( sub { $_->ctx(1)->{"Packet Header"}->{"Packet Id"}->{"DFH Flag"} }, Struct("Packet Data Field Present",
+	     $TMSourceSecondaryHeader,
+	     Switch("PusData", sub { join(',',$_->ctx->{TMSourceSecondaryHeader}->{"Service Type"},$_->ctx->{TMSourceSecondaryHeader}->{"Service Subtype"})},
             {
 		"1,1"   => $pus_AckOk,
 		"1,7"   => $pus_AckOk,
@@ -105,7 +104,13 @@ our $tmsourcepacket_parser = Struct("TM Source Packet",
 		"128,3" => pus_parameter_report
 	    },
 	    default => $DefaultPass,
-	),
+	    ),
+        )),
+        If ( sub { ! $_->ctx(1)->{"Packet Header"}->{"Packet Id"}->{"DFH Flag"}}, Struct("Time Packet",
+	#No DFH
+	 $Sat_Time,
+	  UBInt8("Status"),
+        )),
 	UBInt16("Packet Error Control"),
     )
 );

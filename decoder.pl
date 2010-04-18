@@ -2,59 +2,80 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
 use Data::Dumper;
-use Digest::CRC qw(crcccitt);
-use CCSDS_Common qw(verify_crc tm_verify_crc);
 
+use CCSDS_Common qw(verify_crc tm_verify_crc);
 use TMSourcePacket qw($tmsourcepacket_parser $scos_tmsourcepacket_parser); 
 use TMPrinter; 
 
-my $mdebug=0;
-my $nblocks=0;
-$mdebug=1 if exists $ARGV[0];
 
-$Data::ParseBinary::print_debug_info=1 if exists $ARGV[0];
+#Fields to convert in hex if dumper is used
+my @tohex=('Packet Error Control');
+
+my $odebug=0;
+my $odumper=0;
+my $opts = GetOptions('debug' => \$odebug,      # do we want debug
+                      'dumper' => \$odumper     # do we want to use tmprint or internal dumper
+                      );    
+$Data::ParseBinary::print_debug_info=1 if $odebug;
 
 $/ = ''; # paragraph reads
+my $nblocks=0;
 while (<STDIN>) {
   chomp;
   my $buf=();
   my $decoded=();
   my $pstring=();
   $nblocks++;
-  
-  print "BUF IS <$_>\n" if $mdebug;
+  print "BUF IS <$_>\n" if $odebug;
+
+#Nothing to do if input is simple: no header, no space
+  $buf=$_ , goto DECODE if (/^[[:xdigit:]]*$/);
   my @lines=split(/\n/);
 
-  #Remove the typical addresses on the left
+#Remove the typical addresses on the left
   my $line=(); 
   foreach (@lines) {
-	next if /^#/;
-	s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
-#split /[\s:]+/, "00000:61 38 AA 4B B4 F8 00 00 96 01", 2 )[1]
- 	$line=$1;
-	$line =~ s/ //g;
-	$buf=$buf.$line;
+	  next if /^#/;
+#Is everything on one line, without header and spaces
+	  s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
+ 	  $line=$1;
+	  $line =~ s/ //g;
+	  $buf.=$line;
   }
-  print "BUF IS <$buf>\n" if $mdebug;
+  print "BUF IS <$buf>\n" if $odebug;
 
+# DECODING starts here
+DECODE:
   $pstring = pack (qq{H*},qq{$buf});
 
-  #first lets try on real tmsourcepacket 
+#first lets try on real tmsourcepacket 
   if (tm_verify_crc $buf) {
-	$decoded=$tmsourcepacket_parser->parse($pstring);
+	  $decoded=$tmsourcepacket_parser->parse($pstring);
   } 
   elsif (tm_verify_crc substr $buf,40) {
-  #now lets try on scosheader+tmsourcepacket
-	$decoded=$scos_tmsourcepacket_parser->parse($pstring);
+#now lets try on scosheader+tmsourcepacket
+	  $decoded=$scos_tmsourcepacket_parser->parse($pstring);
   } else {
-  #not recognized
-  	die("Crc check failed at block $nblocks, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
+#try without crc, good luck
+    print "Warning, Crc seems wrong!\n";
+	  $decoded=$tmsourcepacket_parser->parse($pstring);
   } 
 
+#Change fields to hex
+   my $dumper= Dumper($decoded);
+   foreach (@tohex) {
+     $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
+     my $hv=sprintf("%#x",$1);
+     $dumper =~ s/$1/$hv/;
+   }
 #  print "/" . "-" x 100 . "\n";
-#  print Dumper($decoded);
-  TMPrint($decoded);
+  if ($odumper) {
+   print $dumper;
+  } else {
+    TMPrint($decoded);
+  }
 #  print "\\" . "-" x 100 . "\n";
   print "\n";
 }

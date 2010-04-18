@@ -32,7 +32,7 @@ sub TMPrint {
 	# Then $tm is a scos packet, and we go directly to the TM Packet
 		$Src_Packet=$tm->{'TM Source Packet'};
 	}
-	my $Pkt_Data=$Src_Packet->{'Packet Data Field'}->{'Packet Data Field Present'};
+	my $Pkt_Data=$Src_Packet->{'Packet Data Field'}->{'Data Field'};
 	my $Pus_Header=$Pkt_Data->{'TMSourceSecondaryHeader'};
 	
 	my $OBT=${$Pus_Header->{'Sat_Time'}}{'OBT'};
@@ -67,7 +67,7 @@ sub TMPrint {
 			my $dta=$Pus_Data->{'Data'};
 			print "Memory Id:$MemId  StartAddress:" . sprintf("%08x",$StartAddress) . "  Length: $Length Data:\n";
 			for(my $i=0;$i<$Length;$i+=32){
-				my $j=$i+32; $j=$Length-1 if ($j>$Length-1);
+				my $j=$i+31; $j=$Length-1 if ($j>$Length-1);
 				print sprintf("%08x : ",$i). join(' ',	map { sprintf "%02X",$_} @$dta[$i..$j]) . "\n";	
 			}
 		}
@@ -82,7 +82,7 @@ sub TMPrint {
 					print "RM Log  Pointer:$Ptr\n";
 					my $i=0;
 					for(;(my $cTimeStamp=(my $cEntry=$$Entry[$i])->{'TimeStamp'})!=0;$i++) {
-						print '-' x 48 ."\n|              Entry $i at ". sprintf("%10s",$cTimeStamp)."s          |\n".'-' x 48 . "\n";
+            print '-' x 48 ."\n              Entry $i at ". sprintf("%07f",$cTimeStamp)."s          \n".'-' x 48 . "\n";
 						my $cSts=$cEntry->{'Status Input'};
 						my $cCond=$cEntry->{'Conditioned Alarm'};
 						my $cAtmp=$cEntry->{'Attempt index'};
@@ -136,7 +136,7 @@ sub TMPrint {
 				my $cSts=$Pus_Data->{'Status'}->[$i];
 				my $PID=$cSts->{'Pidb'}->{'PID'};
 				my $Status=$cSts->{'Status'};
-				print "Pid $PID  Status=$Status\n";
+				print sprintf("%12s",$PID)."  Status=$Status\n";
 			}
 		}
 		case "12,11" {
@@ -162,7 +162,7 @@ sub TMPrint {
 				my $PID=$cTM->{'Pidb'}->{'PID'};
 				my $FStat=$cTM->{'FStat'};
 				my $N2=$cTM->{'N2'};
-				print "Pid=$PID  FStat=$FStat  Number of Type(N2)=$N2\n";
+				print sprintf("%12s",$PID)."  FStat=$FStat  Number of Type(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
 					my $cLType=$cTM->{'Types'}->[$j];
 					my $Type=$cLType->{'Type'};
@@ -185,7 +185,7 @@ sub TMPrint {
 				my $cPid=$Pus_Data->{'Pids'}->[$i];
 				my $PID=$cPid->{'Pidb'}->{'PID'};
 				my $N2=$cPid->{'N2'};
-				print "Pid=$PID  Number of Sids(N2)=$N2\n";
+				print sprintf("%12s",$PID)."  Number of Sids(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
 					my $cSid=$cPid->{'Sids'}->[$j];
 					my $SID=$cSid->{'SID'};
@@ -202,18 +202,18 @@ sub TMPrint {
 				my $PID=$cTM->{'Pidb'}->{'PID'};
 				my $StoreId1=$cTM->{'StoreId1'};
 				my $N2=$cTM->{'N2'};
-				print "Pid=$PID  StoreId1=$StoreId1  Number of Type(N2)=$N2\n";
+				print sprintf("%12s",$PID)."  StoreId1=$StoreId1  Number of Type(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
 					my $cLType=$cTM->{'Types'}->[$j];
 					my $Type=$cLType->{'Type'};
 					my $StoreId2=$cLType->{'StoreId2'};
 					my $N3=$cLType->{'N3'};
-					print "\tType=$Type  StoreId2=$StoreId2  Number of SubType(N3)=$N3\n";
+					print "\t\tType=$Type  StoreId2=$StoreId2  Number of SubType(N3)=$N3\n";
 					for(my $k=0;$k<$N3;$k++) {
 						my $cLSubType=$cLType->{'SubTypes'}->[$k];
 						my $SubType=$cLSubType->{'SubType'};
 						my $StoreId3=$cLSubType->{'StoreId3'};
-						print "\t\tSubType=$SubType  StoreId3=$StoreId3 \n";
+						print "\t\t\t   SubType=$SubType  StoreId3=$StoreId3 \n";
 					}
 				}
 			}

@@ -34,7 +34,7 @@ sub pus_AckKo {
 	    UBInt16("TC Packet SC"),
 	    UBInt16("FID"),
 #Parameters are 32bits (hence /4)
-	    Array(sub { ( $_->ctx(2)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-6)/4},UBInt32("Params"))
+	    Array(sub { ( $_->ctx(3)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-6)/4},UBInt32("Params"))
         );
 }
 
@@ -43,6 +43,11 @@ our $pus_DirMil = Struct("Pus_DirMil",
 	UBInt16("Milbus Status"),
 	UBInt16("Dsize"),
 	Array(sub { $_->ctx->{"Dsize"} },UBInt16("MilData") )
+);
+
+our $pus_hk = Struct("Pus HK/Diag",
+    UBInt8("SID"),
+	  Array(sub { $_->ctx(3)->{"Packet Header"}->{"Packet Sequence Control"}->{"Source Data Length"}-1}, UBInt8("Data"))
 );
 
 our $pus_hk_report_definition = Struct("Pus HK Report Definition",
@@ -418,7 +423,7 @@ sub pus_parameter_report {
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($pus_AckOk $pus_DirMil $pus_hk_report_definition $pus_enabled_events $pus_memory_dump $pus_memory_dump $pus_memory_chk $pus_function_status $pus_function pus_AckKo pus_Event pus_sliced $pus_detailed_schedule $pus_summary_schedule $pus_command_schedule_status $pus_current_monitoring_list  $pus_current_monitoring_oo_list $pus_check_transition $pus_enabled_tm_sourcepacket $pus_enabled_hk $pus_enabled_event $pus_storage_selection_definition $pus_packet_store_catalogue $pus_hk_format $pus_sid_storage_selection_definition $pus_OBCP_list $pus_OBCP_dump $pus_event_detection_list pus_parameter_report);
+our @EXPORT = qw($pus_AckOk $pus_DirMil $pus_hk $pus_hk_report_definition $pus_enabled_events $pus_memory_dump $pus_memory_dump $pus_memory_chk $pus_function_status $pus_function pus_AckKo pus_Event pus_sliced $pus_detailed_schedule $pus_summary_schedule $pus_command_schedule_status $pus_current_monitoring_list  $pus_current_monitoring_oo_list $pus_check_transition $pus_enabled_tm_sourcepacket $pus_enabled_hk $pus_enabled_event $pus_storage_selection_definition $pus_packet_store_catalogue $pus_hk_format $pus_sid_storage_selection_definition $pus_OBCP_list $pus_OBCP_dump $pus_event_detection_list pus_parameter_report);
 
 1;
 

@@ -69,9 +69,9 @@ while (<STDIN>) {
   	die("Crc check failed at block $nblocks, neither a correct TMSourcepacket nor a correct ScosHeader+TMSourcePacket"); 
   } 
 
-  print "/" . "-" x 100 . "\n";
+#  print "/" . "-" x 100 . "\n";
 #  print Dumper($decoded);
   TMPrint($decoded);
-  print "\\" . "-" x 100 . "\n";
+#  print "\\" . "-" x 100 . "\n";
   print "\n";
 }

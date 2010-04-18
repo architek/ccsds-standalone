@@ -80,55 +80,35 @@ sub TMPrint {
 					my $Ptr=$Function_Data->{'Pointer'};
 					my $Entry=$Function_Data->{'RMLogEntry'};
 					print "RM Log  Pointer:$Ptr\n";
-					for(my $i=0;(my $cTimeStamp=(my $cEntry=$$Entry[$i])->{'TimeStamp'})!=0;$i++) {
-						print '-' x 40 ."\n|             Entry $i at $cTimeStamp            |\n".'-' x 40 . "\n";
+					my $i=0;
+					for(;(my $cTimeStamp=(my $cEntry=$$Entry[$i])->{'TimeStamp'})!=0;$i++) {
+						print '-' x 48 ."\n|              Entry $i at ". sprintf("%10s",$cTimeStamp)."s          |\n".'-' x 48 . "\n";
 						my $cSts=$cEntry->{'Status Input'};
 						my $cCond=$cEntry->{'Conditioned Alarm'};
 						my $cAtmp=$cEntry->{'Attempt index'};
 						my $cPat=$cEntry->{'Pattern No'};
-						my $wda=""; $wda="+WDA" if ($cEntry->{'WDA'}>0);
-						my $wdb=""; $wdb="+WDB" if ($cEntry->{'WDB'}>0);
-						my $epa=""; $epa="+EPA" if ($cEntry->{'EPA'}>0);
-						my $epb=""; $epb="+EPB" if ($cEntry->{'EPB'}>0);
-						my $batA=""; $batA="+BatA" if ($cEntry->{'BatA'}>0);
-						my $batB=""; $batB="+BatB" if ($cEntry->{'BatB'}>0);
-						my $thr=""; $thr="+Thruster" if ($cEntry->{'Thr'}>0);
-						my $sun=""; $sun="+SunLoss" if ($cEntry->{'SunLoss'}>0);
-						my $tmp=""; $tmp="+TempCtl" if ($cEntry->{'TempCtl'}>0);
-						my $pmaHw=""; $pmaHw="+PMAhw" if ($cEntry->{'PMAhw'}>0);
-						my $pmaAll=""; $pmaAll="+PMAall" if ($cEntry->{'PMAall'}>0);
-						my $pmaUV=""; $pmaUV="+PMAuv" if ($cEntry->{'PMAuv'}>0);
-						my $pmaSw=""; $pmaSw="+PMAsw" if ($cEntry->{'PMAsw'}>0);
-						my $pmbHw=""; $pmbHw="+PMBhw" if ($cEntry->{'PMBhw'}>0);
-						my $pmbAll=""; $pmbAll="+PMBall" if ($cEntry->{'PMBall'}>0);
-						my $pmbUV=""; $pmbUV="+PMBuv" if ($cEntry->{'PMBuv'}>0);
-						my $pmbSw=""; $pmbSw="+PMBsw" if ($cEntry->{'PMBsw'}>0);
-						my $selPM="+selPMA"; $selPM="+SelPMB" if ($cEntry->{'SelPM'}>0);
-						my $sep1=""; $sep1="+Sep1" if ($cEntry->{'Sep1'}>0);
-						my $sep2=""; $sep2="+Sep2" if ($cEntry->{'Sep2'}>0);
-						my $sep3=""; $sep3="+Sep3" if ($cEntry->{'Sep3'}>0);
-						my $wdEn=""; $wdEn="+WDenable" if ($cEntry->{'WDen'}>0);
-						my $au="   "; $au="+AU" if ($cEntry->{'au'}>0);
-						my $auRed="      "; $auRed="+AUred" if ($cEntry->{'auRed'}>0);
-						my $tmEnc="      "; $tmEnc="+TMenc" if ($cEntry->{'tmEnc'}>0);
-						my $pmAct="+PMA"; $pmAct="+PMB" if ($cEntry->{'pmAct'}>0);
-						my $wd="   "; $wd="+WD" if ($cEntry->{'wd'}>0);
-						my $rm="   "; $rm="+RM" if ($cEntry->{'rm'}>0);
-						my $rmRed="      "; $rmRed="+RMred" if ($cEntry->{'rmRed'}>0);
-						my $buttr="         "; $buttr="+BUTTRred" if ($cEntry->{'buttrRed'}>0);
-						my $bit1="       "; $bit1="+PMbit1" if ($cEntry->{'pmBit1'}>0);
-						my $ram="      "; $ram="+SDRAM" if ($cEntry->{'sdram'}>0);
-						my $pma="    "; $pma="+PMA" if ($cEntry->{'pmA'}>0);
-						my $pmb="    "; $pmb="+PMB" if ($cEntry->{'pmB'}>0);
-						my $bit0="       "; $bit0="+PMbit0" if ($cEntry->{'pmBit0'}>0);
-						my $eeprom="       "; $eeprom="+EEPROM" if ($cEntry->{'eeprom'}>0);
+
+						my @mkeys_s=('au', 'auRed', 'tmEnc', 'wd', 'rm', 'rmRed', 'buttrRed', 
+								'pmBit1', 'sdram', 'pmA', 'pmB', 'pmBit0', 'eeprom');
+						my $sts_print=($cEntry->{'pmAct'})?" +PMB":" +PMA";
+						foreach my $mkey_s (@mkeys_s) {     # We print either " +XX" or the same number of spaces
+							$sts_print.=($cEntry->{$mkey_s})?" +$mkey_s":' ' x (2+length($mkey_s));
+						}
+
+						my @mkeys_c=( 'WDA', 'WDB', 'EPA', 'EPB', 'BatA', 'BatB', 'Thr', 'SunLoss', 
+							    'TempCtl', 'PMAhw', 'PMAall', 'PMAuv', 'PMAsw', 'PMBhw', 'PMBall', 
+							    'PMBuv', 'PMBsw', 'SelPMB', 'Sep1', 'Sep2', 'Sep3', 'WDen');
+						my $cond_print="";
+						foreach my $mkey_c (@mkeys_c) {
+							$cond_print.=" +$mkey_c" if $cEntry->{$mkey_c};
+						}
 
 						print "Pattern No        :    ". sprintf("%04d",$cPat) . "\n";
-						print "Status Input      :". sprintf("%08x",$cSts) . "  $au$auRed$tmEnc$pmAct$wd$rm$rmRed$buttr$bit1$ram$pma$pmb$bit0$eeprom " . "\n";
-						print "Conditionned Alarm:". sprintf("%06x",$cCond) . "    $wda$wdb$epa$epb$batA$batB$thr$sun$tmp$pmaHw$pmaAll$pmaUV$pmaSw$pmbHw$pmbAll$pmbUV$pmbSw$selPM$sep1$sep2$sep3$wdEn" . "\n";
+						print "Status Input      :". sprintf("%08x",$cSts) . " $sts_print\n";
+						print "Conditionned Alarm:  ". sprintf("%06x",$cCond) . " $cond_print\n";
 						print "Attempt Index     :". sprintf("%08x",$cAtmp) . "\n";
 					}
-					print '-' x 40 . "\n";
+					print '-' x 40 . "\n" if ($i);
 				}
 				else { print "Undecoded Function\n" . Dumper($Function_Data); }
 			}

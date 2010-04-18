@@ -4,7 +4,7 @@ use warnings;
 
 use Data::Dumper;
 use Digest::CRC qw(crcccitt);
-
+use CCSDS_Common qw(verify_crc tm_verify_crc);
 
 use TMSourcePacket qw($tmsourcepacket_parser $scos_tmsourcepacket_parser); 
 use TMPrinter; 
@@ -14,23 +14,6 @@ my $nblocks=0;
 $mdebug=1 if exists $ARGV[0];
 
 $Data::ParseBinary::print_debug_info=1 if exists $ARGV[0];
-
-#TODO integrate CRC as MAGIC in TMSourcePacket and loop on parsers
-
-sub verify_crc {
-	(my $crc_in,my $data)=@_;
-  	$crc_in =~ tr/A-F/a-f/;
- 	my $sdata=pack("H*",$data);
-	my $crc=crcccitt("$sdata");
-	print "Calculated Crc:" . sprintf("%x",$crc) . "\n" if $mdebug;
-	return $crc eq $crc_in;
-}
-
-sub tm_verify_crc {
-	print "Included Crc:" . substr($_[0],-4) . "\n" if $mdebug;
-	(my $data, my $crc_in) =(substr($_[0] , 0, -4), hex substr ($_[0],-4));
-	return verify_crc($crc_in,$data);
-}
 
 $/ = ''; # paragraph reads
 while (<STDIN>) {

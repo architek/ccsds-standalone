@@ -14,7 +14,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#tc 3,131!!!!
 package TMPus;
 use strict;
 use warnings;
@@ -204,8 +203,12 @@ our $pus_command_schedule_status = Struct("Command Schedule Status",
 			$Pid
 		),
 		UBInt8("Status")
-	 )
-	)
+	  Enum(UBInt8("Status"),
+      Disabled => 0,
+      Enabled => 1
+      ),
+    )
+  )
 );
 
 #TODO Criteria

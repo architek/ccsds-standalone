@@ -66,8 +66,9 @@ sub TMPrint {
 			my $Length=$Pus_Data->{'Length'};
 			my $dta=$Pus_Data->{'Data'};
 			print "Memory Id:$MemId  StartAddress:" . sprintf("%08x",$StartAddress) . "  Length: $Length Data:\n";
-			for(my $i=0;$i<$Length;$i+=32){
-				my $j=$i+31; $j=$Length-1 if ($j>$Length-1);
+      my $l=32;
+			for(my $i=0;$i<$Length;$i+=$l){
+				my $j=$i+$l-1; $j=$Length-1 if ($j>$Length-1);
 				print sprintf("%08x : ",$i). join(' ',	map { sprintf "%02X",$_} @$dta[$i..$j]) . "\n";	
 			}
 		}
@@ -88,25 +89,27 @@ sub TMPrint {
 						my $cAtmp=$cEntry->{'Attempt index'};
 						my $cPat=$cEntry->{'Pattern No'};
 
-						my @mkeys_s=('au', 'auRed', 'tmEnc', 'wd', 'rm', 'rmRed', 'buttrRed', 
+						my @mkeys_s=('au', 'auRed', 'tmEnc', 'pmAct', 'wd', 'rm', 'rmRed', 'buttrRed', 
 								'pmBit1', 'sdram', 'pmA', 'pmB', 'pmBit0', 'eeprom');
-						my $sts_print=($cEntry->{'pmAct'})?" +PMB":" +PMA";
+						my $sts_print="";
 						foreach my $mkey_s (@mkeys_s) {     # We print either " +XX" or the same number of spaces
+              $sts_print.=($cEntry->{$mkey_s})?" +PMA":" +PMB",next if ($mkey_s eq 'pmAct');
 							$sts_print.=($cEntry->{$mkey_s})?" +$mkey_s":' ' x (2+length($mkey_s));
 						}
 
 						my @mkeys_c=( 'WDA', 'WDB', 'EPA', 'EPB', 'BatA', 'BatB', 'Thr', 'SunLoss', 
 							    'TempCtl', 'PMAhw', 'PMAall', 'PMAuv', 'PMAsw', 'PMBhw', 'PMBall', 
-							    'PMBuv', 'PMBsw', 'SelPMB', 'Sep1', 'Sep2', 'Sep3', 'WDen');
+							    'PMBuv', 'PMBsw', 'SelPM', 'Sep1', 'Sep2', 'Sep3', 'WDen');
 						my $cond_print="";
 						foreach my $mkey_c (@mkeys_c) {
+              $cond_print.=($cEntry->{$mkey_c})?" +SelPMA":" +SelPMB",next if ($mkey_c eq 'SelPM');
 							$cond_print.=" +$mkey_c" if $cEntry->{$mkey_c};
 						}
 
-						print "Pattern No        :    ". sprintf("%04d",$cPat) . "\n";
-						print "Status Input      :". sprintf("%08x",$cSts) . " $sts_print\n";
-						print "Conditionned Alarm:  ". sprintf("%06x",$cCond) . " $cond_print\n";
-						print "Attempt Index     :". sprintf("%08x",$cAtmp) . "\n";
+						print "Pattern No        :      ". sprintf("%04d",$cPat) . "\n";
+						print "Status Input      :0x". sprintf("%08x",$cSts) . " $sts_print\n";
+						print "Conditionned Alarm:  0x". sprintf("%06x",$cCond) . " $cond_print\n";
+						print "Attempt Index     :  ". sprintf("%8d",$cAtmp) . "\n";
 					}
 					print '-' x 40 . "\n" if ($i);
 				}
@@ -190,7 +193,7 @@ sub TMPrint {
 					my $cSid=$cPid->{'Sids'}->[$j];
 					my $SID=$cSid->{'SID'};
 					my $FStat=$cSid->{'FStat'};
-					print "\tSID=$SID  FStat=$FStat\n";
+					print "\t\tSID=$SID  FStat=$FStat\n";
 				}
 			}
 		}

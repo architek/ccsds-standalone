@@ -53,26 +53,26 @@ sub TMPrint {
 			print "HK/Diag Report Definition  Sid=$SID  ColInt=$Col  Status=$Status  NPar=$NPar\n";
 		 	print "Params=\n" . Dumper($Params) if ($NPar);
 		}
-		case "5,132" {
+		case '5,132' {
 			my $NEid=$Pus_Data->{'NEid'};
 			my $Eids=$Pus_Data->{'Eids'};
 			#$Data::Dumper::Indent = 2;
 		 	print "Enabled Events  NEids=$NEid\n";
 			print "EIDs=\n" . Dumper($Eids) if ($NEid);
 		}
-		case "6,6" {
+		case '6,6' {
 			my $MemId=$Pus_Data->{'Memory Id'};
 			my $StartAddress=$Pus_Data->{'Start Address'};
 			my $Length=$Pus_Data->{'Length'};
 			my $dta=$Pus_Data->{'Data'};
-			print "Memory Id:$MemId  StartAddress:" . sprintf("%08x",$StartAddress) . "  Length: $Length Data:\n";
+			print "Memory Id:$MemId  StartAddress:" . sprintf('%08x',$StartAddress) . "  Length: $Length Data:\n";
       my $l=32;
 			for(my $i=0;$i<$Length;$i+=$l){
 				my $j=$i+$l-1; $j=$Length-1 if ($j>$Length-1);
-				print sprintf("%08x : ",$i). join(' ',	map { sprintf "%02X",$_} @$dta[$i..$j]) . "\n";	
+				print sprintf('%08x : ',$i). join(' ',	map { sprintf '%02X',$_} @$dta[$i..$j]) . "\n";	
 			}
 		}
-		case "8,140" {
+		case '8,140' {
 			my $FID=$Pus_Data->{'Function Id'};
 			print "Function ID=$FID  ";	
 			my $Function_Data=$Pus_Data->{'Data'};
@@ -83,7 +83,7 @@ sub TMPrint {
 					print "RM Log  Pointer:$Ptr\n";
 					my $i=0;
 					for(;(my $cTimeStamp=(my $cEntry=$$Entry[$i])->{'TimeStamp'})!=0;$i++) {
-            print '-' x 48 ."\n              Entry $i at ". sprintf("%07f",$cTimeStamp)."s          \n".'-' x 48 . "\n";
+            print '-' x 48 ."\n              Entry $i at ". sprintf('%07f',$cTimeStamp)."s          \n".'-' x 48 . "\n";
 						my $cSts=$cEntry->{'Status Input'};
 						my $cCond=$cEntry->{'Conditioned Alarm'};
 						my $cAtmp=$cEntry->{'Attempt index'};
@@ -91,32 +91,32 @@ sub TMPrint {
 
 						my @mkeys_s=('au', 'auRed', 'tmEnc', 'pmAct', 'wd', 'rm', 'rmRed', 'buttrRed', 
 								'pmBit1', 'sdram', 'pmA', 'pmB', 'pmBit0', 'eeprom');
-						my $sts_print="";
+						my $sts_print='';
 						foreach my $mkey_s (@mkeys_s) {     # We print either " +XX" or the same number of spaces
-              $sts_print.=($cEntry->{$mkey_s})?" +PMA":" +PMB",next if ($mkey_s eq 'pmAct');
+              $sts_print.=($cEntry->{$mkey_s})?' +PMA':' +PMB',next if ($mkey_s eq 'pmAct');
 							$sts_print.=($cEntry->{$mkey_s})?" +$mkey_s":' ' x (2+length($mkey_s));
 						}
 
 						my @mkeys_c=( 'WDA', 'WDB', 'EPA', 'EPB', 'BatA', 'BatB', 'Thr', 'SunLoss', 
 							    'TempCtl', 'PMAhw', 'PMAall', 'PMAuv', 'PMAsw', 'PMBhw', 'PMBall', 
 							    'PMBuv', 'PMBsw', 'SelPM', 'Sep1', 'Sep2', 'Sep3', 'WDen');
-						my $cond_print="";
+						my $cond_print='';
 						foreach my $mkey_c (@mkeys_c) {
-              $cond_print.=($cEntry->{$mkey_c})?" +SelPMA":" +SelPMB",next if ($mkey_c eq 'SelPM');
+              $cond_print.=($cEntry->{$mkey_c})?' +SelPMA':' +SelPMB',next if ($mkey_c eq 'SelPM');
 							$cond_print.=" +$mkey_c" if $cEntry->{$mkey_c};
 						}
 
-						print "Pattern No        :      ". sprintf("%04d",$cPat) . "\n";
-						print "Status Input      :0x". sprintf("%08x",$cSts) . " $sts_print\n";
-						print "Conditionned Alarm:  0x". sprintf("%06x",$cCond) . " $cond_print\n";
-						print "Attempt Index     :  ". sprintf("%8d",$cAtmp) . "\n";
+						print 'Pattern No        :      '. sprintf('%04d',$cPat) . "\n";
+						print 'Status Input      :0x'. sprintf('%08x',$cSts) . " $sts_print\n";
+						print 'Conditionned Alarm:  0x'. sprintf('%06x',$cCond) . " $cond_print\n";
+						print 'Attempt Index     :  '. sprintf('%8d',$cAtmp) . "\n";
 					}
 					print '-' x 40 . "\n" if ($i);
 				}
 				else { print "Undecoded Function\n" . Dumper($Function_Data); }
 			}
 		}
-		case "8,141" {
+		case '8,141' {
 			my $FID=$Pus_Data->{'Function Id'};
 			my $NrCurSlice=$Pus_Data->{'Nr Current Slice'};
 			my $TotSlice=$Pus_Data->{'Total Slice'};
@@ -128,21 +128,21 @@ sub TMPrint {
 			} else {
 			for(my $i=0;$i<$Length;$i+=32){
 				my $j=$i+32; $j=$Length-1 if ($j>$Length-1);
-				print sprintf("%08x : ",$i). join(' ',	map { sprintf "%02X",$_} @$dta[$i..$j]) . "\n";	
+				print sprintf('%08x : ',$i). join(' ',	map { sprintf '%02X',$_} @$dta[$i..$j]) . "\n";	
 			}
 			}
 		}
-		case "11,19" {
+		case '11,19' {
 			my $N=$Pus_Data->{'N'};
 			print "NParam=$N\n";
 			for(my $i=0;$i<$N;$i++) {
 				my $cSts=$Pus_Data->{'Status'}->[$i];
 				my $PID=$cSts->{'Pidb'}->{'PID'};
 				my $Status=$cSts->{'Status'};
-				print sprintf("%12s",$PID)."  Status=$Status\n";
+				print sprintf('%12s',$PID)."  Status=$Status\n";
 			}
 		}
-		case "12,11" {
+		case '12,11' {
 			my $N=$Pus_Data->{'N'};
 			print "NParam=$N\n";
 			for(my $i=0;$i<$N;$i++) {
@@ -157,7 +157,7 @@ sub TMPrint {
 				print "ParamId=$ParamId  Mask=$Mask  Param Value=$ParamValue  Limit crossed=$LimCrossed  Previous Chk Status=$PrevCheckSts  Current Chk Status=$CurCheckSts  OBT=$OBT\n";
 			}
 		}
-		case "14,4" {
+		case '14,4' {
 			my $N1=$Pus_Data->{'N1'};
 			print "Number of TM Source(N1)=$N1\n";
 			for(my $i=0;$i<$N1;$i++) {
@@ -165,7 +165,7 @@ sub TMPrint {
 				my $PID=$cTM->{'Pidb'}->{'PID'};
 				my $FStat=$cTM->{'FStat'};
 				my $N2=$cTM->{'N2'};
-				print sprintf("%12s",$PID)."  FStat=$FStat  Number of Type(N2)=$N2\n";
+				print sprintf('%12s',$PID)."  FStat=$FStat  Number of Type(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
 					my $cLType=$cTM->{'Types'}->[$j];
 					my $Type=$cLType->{'Type'};
@@ -181,14 +181,14 @@ sub TMPrint {
 				}
 			}
 		}
-		case "14,8" {
+		case '14,8' {
 			my $N1=$Pus_Data->{'N1'};
 			print "Number of Pids(N1)=$N1\n";
 			for(my $i=0;$i<$N1;$i++) {
 				my $cPid=$Pus_Data->{'Pids'}->[$i];
 				my $PID=$cPid->{'Pidb'}->{'PID'};
 				my $N2=$cPid->{'N2'};
-				print sprintf("%12s",$PID)."  Number of Sids(N2)=$N2\n";
+				print sprintf('%12s',$PID)."  Number of Sids(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
 					my $cSid=$cPid->{'Sids'}->[$j];
 					my $SID=$cSid->{'SID'};
@@ -197,7 +197,7 @@ sub TMPrint {
 				}
 			}
 		}
-		case "15,6" {
+		case '15,6' {
 			my $N1=$Pus_Data->{'N1'};
 			print "Number of Pids(N1)=$N1\n";
 			for(my $i=0;$i<$N1;$i++) {
@@ -205,7 +205,7 @@ sub TMPrint {
 				my $PID=$cTM->{'Pidb'}->{'PID'};
 				my $StoreId1=$cTM->{'StoreId1'};
 				my $N2=$cTM->{'N2'};
-				print sprintf("%12s",$PID)."  StoreId1=$StoreId1  Number of Type(N2)=$N2\n";
+				print sprintf('%12s',$PID)."  StoreId1=$StoreId1  Number of Type(N2)=$N2\n";
 				for(my $j=0;$j<$N2;$j++) {
 					my $cLType=$cTM->{'Types'}->[$j];
 					my $Type=$cLType->{'Type'};
@@ -222,7 +222,7 @@ sub TMPrint {
 			}
 			
 		}
-		case "15,13" {
+		case '15,13' {
 			my $N=$Pus_Data->{'N'};
 			print "Number of Stores=$N\n";
 			for(my $i=0;$i<$N;$i++) {
@@ -234,7 +234,7 @@ sub TMPrint {
 				print "StoreId $cStoreId  Time:[${cStoreTime1}s .. ${cStoreTime2}s]  Filled: $cPercent%\n";
 			}
 		}
-		case "19,7" {
+		case '19,7' {
 			my $N=$Pus_Data->{'N'};
 			print "NParam=$N\n";
 			$Data::Dumper::Indent = 2;

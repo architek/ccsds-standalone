@@ -18,9 +18,9 @@ while(1) {
   my $decoded=();
   my $pstring=();
   die @_ if (sysread(STDIN,$raw,6)!=6);
-  my $length=1+hex unpack("H*",substr $raw,4,6);
+  my $length=1+hex unpack('H*',substr $raw,4,6);
   die @_ if (sysread(STDIN,$raw,$length,6)!=$length);
-  my $buf=unpack("H*",$raw);
+  my $buf=unpack('H*',$raw);
   
   print "Buffer :$buf\n";
   #first lets try on real tmsourcepacket 
@@ -29,9 +29,9 @@ while(1) {
 #  } else {
 #	print "Buffer is not SourcePacket:$buf";
 #  }
-  print "/" . "-" x 100 . "\n";
+  print '/' . '-' x 100 . "\n";
   print Dumper($decoded);
   #TMPrint($decoded);
-  print "\\" . "-" x 100 . "\n";
+  print '\\' . '-' x 100 . "\n";
   print "\n";
 }

@@ -19,13 +19,13 @@ use strict;
 use warnings;
 use Data::ParseBinary;
 
-our $Sat_Time = Struct("Sat_Time",
-	UBInt32("Seconds"),
-	UBInt16("SubSeconds"),
-	Value("OBT", sub { $_->ctx->{"Seconds"} + $_->ctx->{"SubSeconds"}/65535 } )
+our $Sat_Time = Struct('Sat_Time',
+	UBInt32('Seconds'),
+	UBInt16('SubSeconds'),
+	Value('OBT', sub { $_->ctx->{'Seconds'} + $_->ctx->{'SubSeconds'}/65535 } )
 );
 
-our $Pid = Enum(BitField("PID",7),
+our $Pid = Enum(BitField('PID',7),
 		TIME => 0x0,
                 SYS => 0x10,
                 AOC => 0x11,

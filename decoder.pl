@@ -70,12 +70,12 @@ DECODE:
      my $hv=sprintf("%#x",$1);
      $dumper =~ s/$1/$hv/;
    }
-#  print "/" . "-" x 100 . "\n";
+#  print '/' . '-' x 100 . "\n";
   if ($odumper) {
    print $dumper;
   } else {
     TMPrint($decoded);
   }
-#  print "\\" . "-" x 100 . "\n";
+#  print '\\' . '-' x 100 . "\n";
   print "\n";
 }

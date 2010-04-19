@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 <<'#';
     Copyright (C) 2010  Laurent Kislaire, teebeenator@gmail.com
 
@@ -14,10 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#tc 3,131!!!!
 package TMSourcePacket;
-use strict;
-use warnings;
 use Data::ParseBinary;
 
 use TMCommon;

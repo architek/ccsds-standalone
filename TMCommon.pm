@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 <<'#';
     Copyright (C) 2010  Laurent Kislaire, teebeenator@gmail.com
 
@@ -15,8 +17,6 @@
 #
 
 package TMCommon;
-use strict;
-use warnings;
 use Data::ParseBinary;
 
 our $Sat_Time = Struct('Sat_Time',

@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 <<'#';
     Copyright (C) 2010  Laurent Kislaire, teebeenator@gmail.com
 
@@ -15,8 +17,6 @@
 #
 
 package TMPrinter;
-use strict;
-use warnings;
 use Switch;
 use Data::Dumper;
 

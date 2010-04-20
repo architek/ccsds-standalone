@@ -1,19 +1,19 @@
 use strict;
 use warnings;
-<<'#';
-    Copyright (C) 2010  Laurent Kislaire, teebeenator@gmail.com
-
-    This program is free software: you can redistribute it and or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#<<'#';
+#    Copyright (C) 2010  Laurent Kislaire, teebeenator@gmail.com
+#
+#    This program is free software: you can redistribute it and or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 package TMPrinter;
@@ -93,7 +93,7 @@ sub TMPrint {
 								'pmBit1', 'sdram', 'pmA', 'pmB', 'pmBit0', 'eeprom');
 						my $sts_print='';
 						foreach my $mkey_s (@mkeys_s) {     # We print either " +XX" or the same number of spaces
-              $sts_print.=($cEntry->{$mkey_s})?' +PMA':' +PMB',next if ($mkey_s eq 'pmAct');
+              $sts_print.=($cEntry->{$mkey_s})?' +PMBact':' +PMAact',next if ($mkey_s eq 'pmAct');
 							$sts_print.=($cEntry->{$mkey_s})?" +$mkey_s":' ' x (2+length($mkey_s));
 						}
 
@@ -102,7 +102,7 @@ sub TMPrint {
 							    'PMBuv', 'PMBsw', 'SelPM', 'Sep1', 'Sep2', 'Sep3', 'WDen');
 						my $cond_print='';
 						foreach my $mkey_c (@mkeys_c) {
-              $cond_print.=($cEntry->{$mkey_c})?' +SelPMA':' +SelPMB',next if ($mkey_c eq 'SelPM');
+							$cond_print.=($cEntry->{$mkey_c})?' +SelPMB':' +SelPMA',next if ($mkey_c eq 'SelPM');
 							$cond_print.=" +$mkey_c" if $cEntry->{$mkey_c};
 						}
 
@@ -111,7 +111,7 @@ sub TMPrint {
 						print 'Conditionned Alarm:  0x'. sprintf('%06x',$cCond) . " $cond_print\n";
 						print 'Attempt Index     :  '. sprintf('%8d',$cAtmp) . "\n";
 					}
-					print '-' x 40 . "\n" if ($i);
+					print '-' x 48 . "\n" if ($i);
 				}
 				else { print "Undecoded Function\n" . Dumper($Function_Data); }
 			}
@@ -127,7 +127,7 @@ sub TMPrint {
 				print Dumper($dta);
 			} else {
 			for(my $i=0;$i<$Length;$i+=32){
-				my $j=$i+32; $j=$Length-1 if ($j>$Length-1);
+				my $j=$i+31; $j=$Length-1 if ($j>$Length-1);
 				print sprintf('%08x : ',$i). join(' ',	map { sprintf '%02X',$_} @$dta[$i..$j]) . "\n";	
 			}
 			}

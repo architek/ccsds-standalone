@@ -13,8 +13,9 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '1.00';
 
+use Data::ParseBinary;
 use Data::ParseBinary::Network::Ccsds::Common;
 use Data::ParseBinary::Network::Ccsds::TM::RM;
 use Data::ParseBinary::Network::Ccsds::TM::SGM;

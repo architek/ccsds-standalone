@@ -13,7 +13,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '1.00';
 
 use Switch;
 use Data::Dumper;
@@ -254,7 +254,7 @@ sub TMPrint {
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(TMPrint);
+our @EXPORT = qw(TMPrint $VERSION);
 
 =head1 SYNOPSIS
 

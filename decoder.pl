@@ -4,20 +4,21 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
-
-use CCSDS_Common qw(verify_crc tm_verify_crc);
-use TMSourcePacket qw($tmsourcepacket_parser $scos_tmsourcepacket_parser); 
-use TMPrinter; 
+use Data::ParseBinary::Network::Ccsds::Utils qw(verify_crc tm_verify_crc);
+use Data::ParseBinary::Network::Ccsds::TM::SourcePacket qw($tmsourcepacket_parser $scos_tmsourcepacket_parser); 
+use Data::ParseBinary::Network::Ccsds::TM::Printer qw(TMPrint $VERSION); 
 
 
 #Fields to convert in hex if dumper is used
 my @tohex=('Packet Error Control');
 
-my $odebug=0;
-my $odumper=0;
-my $opts = GetOptions('debug' => \$odebug,      # do we want debug
-                      'dumper' => \$odumper     # do we want to use tmprint or internal dumper
-                      );    
+my $odebug=0; my $odumper=0; my $oshowver=0;
+my $opts = GetOptions('debug' => \$odebug,          # do we want debug
+                      'dumper' => \$odumper,        # do we want to use tmprint or internal dumper
+                      'version' => \$oshowver
+                      );
+
+die "Version $VERSION\n" if $oshowver;
 $Data::ParseBinary::print_debug_info=1 if $odebug;
 
 $/ = ''; # paragraph reads

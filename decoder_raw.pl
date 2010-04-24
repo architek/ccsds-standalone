@@ -22,11 +22,13 @@ while(1) {
   
   print "Buffer :$buf\n";
   #first lets try on real tmsourcepacket 
-#  if (tm_verify_crc $buf) {
-        $decoded=$tmsourcepacket_parser->parse($raw);
-#  } else {
-#	print "Buffer is not SourcePacket:$buf";
-#  }
+  if (tm_verify_crc $buf) {
+    $decoded=$tmsourcepacket_parser->parse($raw);
+  } else {
+  #then on broken tmsourcepacket
+    print "Crc is not correct\n";
+    $decoded=$tmsourcepacket_parser->parse($raw);
+  }
   print '/' . '-' x 100 . "\n";
   print Dumper($decoded);
   #TMPrint($decoded);

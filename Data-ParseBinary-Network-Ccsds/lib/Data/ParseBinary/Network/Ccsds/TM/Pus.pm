@@ -62,7 +62,7 @@ sub pus_Event {
 	return Struct('PusEvent',
 	    UBInt16('EID'),
 #Parameters are 32bits (hence /4)
-	    Array(sub { ( $_->ctx(2)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}-2)/4},UBInt32('Params'))
+	    Array(sub { ( $_->ctx(3)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}-2)/4},UBInt32('Params'))
         );
 }
 
@@ -403,10 +403,12 @@ our $pus_event_detection_list= Struct('Event detection List',
 		UBInt16('Packet Sequence Control'),
 		UBInt16('TC Length'),
 #		UBInt32('Data Field Header'),
-		UBInt8(undef),
+#TODO what's that
+		UBInt8('Pad1'),
 		UBInt8('Service Type'),
 		UBInt8('Service SubType'),
-		UBInt8(undef),
+#TODO what's that
+		UBInt8('Pad2'),
 
 		Array(sub { 1+$_->ctx->{'TC Length'} - 6},UBInt8('TC Application Data')),
 		UBInt16('TC Packet Error Control')
@@ -417,7 +419,7 @@ our $pus_event_detection_list= Struct('Event detection List',
 sub pus_parameter_report {
 	return Struct('Parameter Report',
 		UBInt8('NPar'),
-		Array(sub { $_->ctx(2)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}-1},UBInt8('Params'))
+		Array(sub { $_->ctx(3)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}-1},UBInt8('Params'))
 	);
 }
 

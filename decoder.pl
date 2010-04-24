@@ -31,6 +31,8 @@ while (<STDIN>) {
   $nblocks++;
   print "BUF IS <$_>\n" if $odebug;
 
+#We only take ascii here
+  die("What you gave looks binary to me..\n") unless /^[[:ascii:]]*$/;
 #Nothing to do if input is simple: no header, no space
   $buf=$_ , goto DECODE if (/^[[:xdigit:]]*$/);
   my @lines=split(/\n/);

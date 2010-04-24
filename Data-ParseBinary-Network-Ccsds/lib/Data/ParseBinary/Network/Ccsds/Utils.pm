@@ -17,11 +17,17 @@ our $VERSION = '1.00';
 
 use Digest::CRC qw(crcccitt);
 
+#Takes input as binary!
+sub calc_crc {
+  my $data=shift;
+  return crcccitt("$sdata");
+}
+
 sub verify_crc {
 	(my $crc_in,my $data)=@_;
   $crc_in = lc $crc_in ;
  	my $sdata=pack("H*",$data);
-	my $crc=crcccitt("$sdata");
+	my $crc=calc_crc $sdata;
 	print 'Calculated Crc:' . sprintf('%x',$crc) . "\n" if $::mdebug;
 	return $crc eq $crc_in;
 }
@@ -35,7 +41,7 @@ sub tm_verify_crc {
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(verify_crc tm_verify_crc);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc);
 
 =head1 SYNOPSIS
 

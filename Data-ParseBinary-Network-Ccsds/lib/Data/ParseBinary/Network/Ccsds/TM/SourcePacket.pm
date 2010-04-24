@@ -33,7 +33,7 @@ my $Apid = BitStruct('Apid',
 my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',
 	BitStruct('SecHeadFirstField',
 	  BitField('Spare1',1),
-	  BitField('TM Source Packet PUS Version Number',3),
+	  BitField('PUS Version Number',3),
 	  Nibble('Spare2')
   ),
 	UBInt8('Service Type'),
@@ -107,15 +107,15 @@ our $tmsourcepacket_parser = Struct('TM Source Packet',
         )),
         If ( sub { ! $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, Struct('Time Packet',
 	#No DFH
-	 $Sat_Time,
-	  UBInt8('Status'),
+	        $Sat_Time,
+	        UBInt8('Status'),
         )),
-	UBInt16('Packet Error Control'),
+	  UBInt16('Packet Error Control'),
     )
 );
 
 our $scos_tmsourcepacket_parser= Struct('Scos TM Source Packet',
-	Array(20,UBInt8(undef)),
+	Array(20,UBInt8('Scos Header')),
 	$tmsourcepacket_parser
 );
 

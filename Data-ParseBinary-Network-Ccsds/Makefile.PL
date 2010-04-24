@@ -1,19 +1,13 @@
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME                => 'Data::ParseBinary::Network::Ccsds',
-    AUTHOR              => q{Laurent KISLAIRE <teebeenator@gmail.com>},
-    VERSION_FROM        => 'lib/Data/ParseBinary/Network/Ccsds.pm',
-    ABSTRACT_FROM       => 'lib/Data/ParseBinary/Network/Ccsds.pm',
-    ($ExtUtils::MakeMaker::VERSION >= 6.3002
-      ? ('LICENSE'=> 'perl')
-      : ()),
-    PL_FILES            => {},
-    PREREQ_PM => {
-        'Test::More' => 0,
-    },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Data-ParseBinary-Network-Ccsds-*' },
-);
+name     'Data-ParseBinary-Network-Ccsds';
+all_from 'lib/Data/ParseBinary/Network/Ccsds.pm';
+author   q{Laurent KISLAIRE <teebeenator@gmail.com>};
+license  'perl';
+
+build_requires 'Test::More';
+
+auto_install;
+
+WriteAll;
+

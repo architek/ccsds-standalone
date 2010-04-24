@@ -19,6 +19,9 @@ no_index:
   directory:
     - inc
     - t
+requires:
+  Data::ParseBinary: 0.27
+  Digest::CRC: 0.14
 resources:
   license: http://dev.perl.org/licenses/
 version: 1.00

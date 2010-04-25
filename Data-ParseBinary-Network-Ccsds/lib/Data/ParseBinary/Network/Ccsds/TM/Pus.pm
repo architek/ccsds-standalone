@@ -13,7 +13,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 use Data::ParseBinary;
 use Data::ParseBinary::Network::Ccsds::Common;

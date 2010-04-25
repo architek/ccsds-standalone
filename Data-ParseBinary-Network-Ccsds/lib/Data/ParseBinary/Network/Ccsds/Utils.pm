@@ -20,7 +20,7 @@ use Digest::CRC qw(crcccitt);
 #Takes input as binary!
 sub calc_crc {
   my $data=shift;
-  return crcccitt("$sdata");
+  return crcccitt("$data");
 }
 
 sub verify_crc {

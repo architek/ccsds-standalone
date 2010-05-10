@@ -18,33 +18,36 @@ our $VERSION = '1.01';
 use Digest::CRC qw(crcccitt);
 
 #Takes input as hex ascii representation
-sub verify_crc {
-	(my $crc_in,my $data)=@_;
-  $crc_in = lc $crc_in ;
- 	my $sdata=pack("H*",$data);
-	my $crc=calc_crc $sdata;
-	print 'Calculated Crc:' . sprintf('%x',$crc) . "\n" if $::mdebug;
-	return $crc eq $crc_in;
-}
-sub tm_verify_crc {
-	print 'Included Crc:' . substr($_[0],-4) . "\n" if $::mdebug;
-#split string into data,crc
-	(my $data, my $crc_in) =(substr($_[0] , 0, -4), hex substr ($_[0],-4));
-	return verify_crc($crc_in,$data);
-}
-
 #Takes input as binary!
 sub calc_crc {
-  return crcccitt(shift);
+    return crcccitt(shift);
+}
+
+sub verify_crc {
+    ( my $crc_in, my $data ) = @_;
+    $crc_in = lc $crc_in;
+    my $sdata = pack( "H*", $data );
+    my $crc = calc_crc $sdata;
+    print 'Calculated Crc:' . sprintf( '%x', $crc ) . "\n" if $::mdebug;
+    return $crc eq $crc_in;
+}
+
+sub tm_verify_crc {
+    print 'Included Crc:' . substr( $_[0], -4 ) . "\n" if $::mdebug;
+
+    #split string into data,crc
+    ( my $data, my $crc_in ) =
+      ( substr( $_[0], 0, -4 ), hex substr( $_[0], -4 ) );
+    return verify_crc( $crc_in, $data );
 }
 
 sub tm_verify_crc_bin {
-  return tm_verifiy_crc unpack('A*',shift);
+    return tm_verify_crc unpack( 'A*', shift );
 }
 
 require Exporter;
-our @ISA = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc);
+our @ISA    = qw(Exporter);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc);
 
 =head1 SYNOPSIS
 
@@ -137,4 +140,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Data::ParseBinary::Network::Ccsds::Utils
+1;    # End of Data::ParseBinary::Network::Ccsds::Utils

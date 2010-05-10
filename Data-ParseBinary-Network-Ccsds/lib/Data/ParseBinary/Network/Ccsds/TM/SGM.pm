@@ -54,7 +54,7 @@ our $sgm_read = Struct ('SGM_Slice',
 				UBInt32('PM Configuration'),
 			      )
 		},
-		default => $DefaultPass,
+		_default_ => $DefaultPass,
 	)
 );
 

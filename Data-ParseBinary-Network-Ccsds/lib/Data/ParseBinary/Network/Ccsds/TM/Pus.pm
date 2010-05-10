@@ -5,11 +5,11 @@ use strict;
 
 =head1 NAME
 
-Data::ParseBinary::Network::Ccsds::TM::Pus - The great new Data::ParseBinary::Network::Ccsds::TM::Pus!
+Data::ParseBinary::Network::Ccsds::TM::Pus - Collection for parsing PUS specific
 
 =head1 VERSION
 
-Version 0.01
+Version 1.02
 
 =cut
 
@@ -476,19 +476,66 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
-
+=head2    $pus_AckOk 
 =cut
-
-sub function1 {
-}
-
-=head2 function2
-
+=head2    $pus_DirMil 
 =cut
-
-sub function2 {
-}
+=head2    $pus_hk 
+=cut
+=head2    $pus_hk_report_definition 
+=cut
+=head2    $pus_enabled_events 
+=cut
+=head2    $pus_memory_dump 
+=cut
+=head2    $pus_memory_dump 
+=cut
+=head2    $pus_memory_chk 
+=cut
+=head2    $pus_function_status 
+=cut
+=head2    $pus_function 
+=cut
+=head2    pus_AckKo 
+=cut
+=head2    pus_Event 
+=cut
+=head2    pus_sliced 
+=cut
+=head2    $pus_detailed_schedule 
+=cut
+=head2    $pus_summary_schedule 
+=cut
+=head2    $pus_command_schedule_status 
+=cut
+=head2    $pus_current_monitoring_list  
+=cut
+=head2    $pus_current_monitoring_oo_list 
+=cut
+=head2    $pus_check_transition 
+=cut
+=head2    $pus_enabled_tm_sourcepacket 
+=cut
+=head2    $pus_enabled_hk 
+=cut
+=head2    $pus_enabled_event 
+=cut
+=head2    $pus_storage_selection_definition 
+=cut
+=head2    $pus_packet_store_catalogue 
+=cut
+=head2    $pus_hk_format 
+=cut
+=head2    $pus_sid_storage_selection_definition 
+=cut
+=head2    $pus_OBCP_list 
+=cut
+=head2    $pus_OBCP_dump 
+=cut
+=head2    $pus_event_detection_list 
+=cut
+=head2    pus_parameter_report
+=cut
 
 =head1 AUTHOR
 

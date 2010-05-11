@@ -13,7 +13,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.1';
 
 use Switch;
 use Data::Dumper;

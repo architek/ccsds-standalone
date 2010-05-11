@@ -410,11 +410,9 @@ our $pus_event_detection_list= Struct('Event detection List',
   	UBInt16('Packet ID'),
   	UBInt16('Packet Sequence Control'),
   	UBInt16('TC Length'),
-#TODO what's that
   	UBInt8('Pad1'),
   	UBInt8('Service Type'),
   	UBInt8('Service SubType'),
-#TODO what's that
   	UBInt8('Pad2'),
 
   	Array(sub { 1+$_->ctx->{'TC Length'} - 6},UBInt8('TC Application Data')),
@@ -501,11 +499,11 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 =head2    $pus_function 
 =cut
-=head2    pus_AckKo 
+=head2    $pus_AckKo 
 =cut
-=head2    pus_Event 
+=head2    $pus_Event 
 =cut
-=head2    pus_sliced 
+=head2    $pus_sliced 
 =cut
 =head2    $pus_detailed_schedule 
 =cut
@@ -539,7 +537,7 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 =head2    $pus_event_detection_list 
 =cut
-=head2    pus_parameter_report
+=head2    $pus_parameter_report
 =cut
 
 =head1 AUTHOR

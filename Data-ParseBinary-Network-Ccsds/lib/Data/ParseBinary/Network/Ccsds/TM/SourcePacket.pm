@@ -39,7 +39,7 @@ my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',
 );
 
 
-our $tmsourcepacket_parser = Struct('TM Source Packet',
+our $tmsourcepacket = Struct('TM Source Packet',
   Struct('Packet Header',
         BitStruct('Packet Id',
           BitField('Version Number',3),
@@ -115,14 +115,14 @@ our $tmsourcepacket_parser = Struct('TM Source Packet',
    )
 );
 
-our $scos_tmsourcepacket_parser= Struct('Scos TM Source Packet',
+our $scos_tmsourcepacket = Struct('Scos TM Source Packet',
   Array(20,UBInt8('Scos Header')),
-  $tmsourcepacket_parser
+  $tmsourcepacket
 );
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($tmsourcepacket_parser $scos_tmsourcepacket_parser);
+our @EXPORT = qw($tmsourcepacket $scos_tmsourcepacket);
 
 =head1 SYNOPSIS
 

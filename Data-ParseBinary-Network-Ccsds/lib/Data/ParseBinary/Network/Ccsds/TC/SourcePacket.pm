@@ -24,7 +24,7 @@ my $Apid = BitStruct('Apid',
   Nibble('Pcat')
 );
 
-my $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',
+our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',
   BitStruct('SecHeadFirstField',
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
@@ -56,11 +56,13 @@ our $tcsourcepacket= Struct('TC Source Packet',
     If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
       Struct('Data Field',
             $TCSourceSecondaryHeader,
+#TODO Data
+            UBInt8("DataTODO"),
       ),
     ),
     If ( sub { ! $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
-#TODO (HPCs and others)
-      UBInt8('Status'),
+#TODO 
+        UBInt8('Status'),
     ),
     UBInt16('Packet Error Control'),
    )
@@ -68,7 +70,7 @@ our $tcsourcepacket= Struct('TC Source Packet',
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($tcsourcepacket TCPacketHeader);
+our @EXPORT = qw($tcsourcepacket $TCPacketHeader $TCSourceSecondaryHeader);
 
 =head1 SYNOPSIS
 

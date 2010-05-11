@@ -17,12 +17,12 @@ our $VERSION = '1.1';
 
 use Digest::CRC qw(crcccitt);
 
-#Takes input as hex ascii representation
 #Takes input as binary!
 sub calc_crc {
     return crcccitt(shift);
 }
 
+#Takes input as hex ascii representation
 sub verify_crc {
     ( my $crc_in, my $data ) = @_;
     $crc_in = lc $crc_in;
@@ -32,6 +32,7 @@ sub verify_crc {
     return $crc eq $crc_in;
 }
 
+#Takes input as hex ascii representation
 sub tm_verify_crc {
     print 'Included Crc:' . substr( $_[0], -4 ) . "\n" if $::mdebug;
 
@@ -41,6 +42,7 @@ sub tm_verify_crc {
     return verify_crc( $crc_in, $data );
 }
 
+#Takes input as binary!
 sub tm_verify_crc_bin {
     return tm_verify_crc unpack( 'A*', shift );
 }

@@ -4,8 +4,9 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
+use Data::ParseBinary::Network::Ccsds::TC::SourcePacket;
 use Data::ParseBinary::Network::Ccsds::Utils qw(verify_crc tm_verify_crc);
-use Data::ParseBinary::Network::Ccsds::TM::SourcePacket qw($tmsourcepacket_parser $scos_tmsourcepacket_parser); 
+use Data::ParseBinary::Network::Ccsds::TM::SourcePacket qw($tmsourcepacket $scos_tmsourcepacket); 
 use Data::ParseBinary::Network::Ccsds::TM::Printer qw(TMPrint $VERSION); 
 
 
@@ -55,15 +56,15 @@ DECODE:
 
 #first lets try on real tmsourcepacket 
   if (tm_verify_crc $buf) {
-	  $decoded=$tmsourcepacket_parser->parse($pstring);
+	  $decoded=$tmsourcepacket->parse($pstring);
   } 
   elsif (tm_verify_crc substr $buf,40) {
 #now lets try on scosheader+tmsourcepacket
-	  $decoded=$scos_tmsourcepacket_parser->parse($pstring);
+	  $decoded=$scos_tmsourcepacket->parse($pstring);
   } else {
 #try without crc, good luck
     print "Warning, Crc seems wrong!\n";
-	  $decoded=$tmsourcepacket_parser->parse($pstring);
+	  $decoded=$tmsourcepacket->parse($pstring);
   } 
 
 #Change fields to hex

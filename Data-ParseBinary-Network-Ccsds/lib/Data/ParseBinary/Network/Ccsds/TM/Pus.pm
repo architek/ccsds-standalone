@@ -19,6 +19,7 @@ use Data::ParseBinary;
 use Data::ParseBinary::Network::Ccsds::Common;
 use Data::ParseBinary::Network::Ccsds::TM::RM;
 use Data::ParseBinary::Network::Ccsds::TM::SGM;
+use Data::ParseBinary::Network::Ccsds::TC::SourcePacket;   
 
 our $pus_AckOk = Struct('AckOk',
   UBInt16('TC Packet Id'),
@@ -142,19 +143,14 @@ our $pus_function = Struct('Data',
 );
 
 
-#TODO 
-#Currently assumes DFH *in TC* is set to 1 (which is always the case for mapid-1 TCs)
 our $pus_detailed_schedule = Struct('Detailed Schedule',
   UBInt16('N'),
   Array(sub { $_->ctx->{'N'}},
-     Struct('TC',
-  	$Sat_Time,
-  	UBInt16('Packet ID'),
-  	UBInt16('Packet Sequence Control'),
-  	UBInt16('TC Length'),
-  	UBInt32('Data Field Header'),
-  	Array(sub { 1+$_->ctx->{'TC Length'}},UBInt8('TC Application Data')),
-  	UBInt16('TC Packet Error Control')
+     Struct('Tc',
+          $TCPacketHeader,
+          $TCSourceSecondaryHeader,
+          Array(sub {$_->ctx->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}}, UBInt8('TC Application Data')),
+          UBInt16('Packet Error Control'),
      )
   )
 );
@@ -383,15 +379,10 @@ our $pus_OBCP_dump = Struct('OBCP dump',
      UBInt8('Procedure Step'),
      UBInt16('Delay'),
      Struct('Tc',
-          UBInt16('Packet ID'),
-          UBInt16('Packet Sequence Control'),
-          UBInt16('TC Length'),
-#TODO
-          UBInt8("B1"),
-          UBInt8("Serv"),
-          UBInt8("SubServ"),
-          UBInt8("B2"),
-          Array(sub { 1+$_->ctx->{'TC Length'}-4},UBInt8('TC Application Data')),
+          $TCPacketHeader,
+          $TCSourceSecondaryHeader,
+          Array(sub { $_->ctx->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}}, UBInt8('TC Application Data')),
+          UBInt16('Packet Error Control'),
      )
   ))
 );
@@ -401,24 +392,20 @@ our $pus_event_detection_list= Struct('Event detection List',
   UBInt8('N'),
   Array(sub { $_->ctx->{'N'}},
      Struct('TC',
-  	BitStruct('Pidb',
-  		Padding(1),
-  		$Pid
-  	),
-  	UBInt16('EID'),
-  	UBInt8('Action Status'),
-  	UBInt16('Packet ID'),
-  	UBInt16('Packet Sequence Control'),
-  	UBInt16('TC Length'),
-  	UBInt8('Pad1'),
-  	UBInt8('Service Type'),
-  	UBInt8('Service SubType'),
-  	UBInt8('Pad2'),
-
-  	Array(sub { 1+$_->ctx->{'TC Length'} - 6},UBInt8('TC Application Data')),
-  	UBInt16('TC Packet Error Control')
-     )
+  	   BitStruct('Pidb',
+  		   Padding(1),
+  		   $Pid
+  	   ),
+  	   UBInt16('EID'),
+  	   UBInt8('Action Status'),
+       Struct('Tc',
+         $TCPacketHeader,
+         $TCSourceSecondaryHeader,
+         Array(sub { $_->ctx->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}}, UBInt8('TC Application Data')),
+         UBInt16('Packet Error Control'),
+       )
    	)
+  ),
 );
 
 our $pus_parameter_report = Struct('Parameter Report',

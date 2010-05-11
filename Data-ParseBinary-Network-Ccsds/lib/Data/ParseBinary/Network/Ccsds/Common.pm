@@ -17,8 +17,7 @@ our $VERSION = '1.1';
 
 use Data::ParseBinary;
 
-our $Sat_Time = Struct(
-    'Sat_Time',
+our $Sat_Time = Struct( 'Sat_Time',
     UBInt32('Seconds'),
     UBInt16('SubSeconds'),
     Value(

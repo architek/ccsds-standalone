@@ -33,33 +33,42 @@ my $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',
   UBInt8('Service Type'),
   UBInt8('Service Subtype'),
   UBInt8('Destination Id'),
-  $Sat_Time,
 );
 
+our $TCPacketHeader = Struct('Packet Header',
+  BitStruct('Packet Id',
+    BitField('Version Number',3),
+    BitField('Type',1),
+    Flag('DFH Flag'),
+    $Apid
+  ),
+  BitStruct('Packet Sequence Control',
+    BitField('Segmentation Flags',2),
+    BitField('Source Seq Count',14),
+    UBInt16('Packet Length'),
+    Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 4*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
+  )
+);
 
 our $tcsourcepacket= Struct('TC Source Packet',
-  Struct('Packet Header',
-        BitStruct('Packet Id',
-          BitField('Version Number',3),
-       	  BitField('Type',1),
-          Flag('DFH Flag'),
-          $Apid
-        ),
-        BitStruct('Packet Sequence Control',
-          BitField('Segmentation Flags',2),
-          BitField('Source Seq Count',14),
-          UBInt16('Packet Length'),
-          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 10*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
-        )
+  $TCPacketHeader,
+  Struct('Packet Data Field',
+    If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
+      Struct('Data Field',
+            $TCSourceSecondaryHeader,
+      ),
     ),
-
+    If ( sub { ! $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
+#TODO (HPCs and others)
+      UBInt8('Status'),
+    ),
     UBInt16('Packet Error Control'),
    )
 );
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($tcsourcepacket);
+our @EXPORT = qw($tcsourcepacket TCPacketHeader);
 
 =head1 SYNOPSIS
 

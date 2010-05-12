@@ -44,9 +44,15 @@ our $Pid = Enum(
       _default_   => $DefaultPass
 );
 
+our $Apid = BitStruct('Apid',
+  $Pid,
+  Nibble('Pcat')
+);
+
+
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw($Sat_Time $Pid);
+our @EXPORT = qw($Sat_Time $Pid $Apid);
 
 =head1 SYNOPSIS
 

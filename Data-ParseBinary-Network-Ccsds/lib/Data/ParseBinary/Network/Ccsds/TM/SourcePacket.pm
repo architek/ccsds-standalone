@@ -21,11 +21,6 @@ use Data::ParseBinary::Network::Ccsds::Common;
 use Data::ParseBinary::Network::Ccsds::TM::Pus;
 use Data::ParseBinary::Network::Ccsds::TM::RM;
 
-my $Apid = BitStruct('Apid',
-  $Pid,
-  Nibble('Pcat')
-);
-
 my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',
   BitStruct('SecHeadFirstField',
     BitField('Spare1',1),

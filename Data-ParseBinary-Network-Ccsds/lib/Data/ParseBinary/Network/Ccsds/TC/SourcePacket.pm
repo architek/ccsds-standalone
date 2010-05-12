@@ -19,12 +19,8 @@ use Data::ParseBinary;
 
 use Data::ParseBinary::Network::Ccsds::Common;
 
-my $Apid = BitStruct('Apid',
-  $Pid,
-  Nibble('Pcat')
-);
 
-our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',
+our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits
   BitStruct('SecHeadFirstField',
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
@@ -35,7 +31,7 @@ our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',
   UBInt8('Destination Id'),
 );
 
-our $TCPacketHeader = Struct('Packet Header',
+our $TCPacketHeader = Struct('Packet Header',                         #
   BitStruct('Packet Id',
     BitField('Version Number',3),
     BitField('Type',1),
@@ -56,13 +52,11 @@ our $tcsourcepacket= Struct('TC Source Packet',
     If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
       Struct('Data Field',
             $TCSourceSecondaryHeader,
-#TODO Data
-            UBInt8("DataTODO"),
+            Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
       ),
     ),
     If ( sub { ! $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
-#TODO 
-        UBInt8('Status'),
+      Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
     ),
     UBInt16('Packet Error Control'),
    )

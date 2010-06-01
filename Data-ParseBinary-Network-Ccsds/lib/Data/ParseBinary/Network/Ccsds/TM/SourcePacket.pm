@@ -54,8 +54,7 @@ our $tmsourcepacket = Struct('TM Source Packet',
     If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
       Struct('Data Field',
             $TMSourceSecondaryHeader,
-            Switch('PusData', sub {  join(',', \
-                $_->ctx->{TMSourceSecondaryHeader}->{'Service Type'},$_->ctx->{TMSourceSecondaryHeader}->{'Service Subtype'})},
+            Switch('PusData', sub {  join(',', $_->ctx->{TMSourceSecondaryHeader}->{'Service Type'},$_->ctx->{TMSourceSecondaryHeader}->{'Service Subtype'})},
             {
             		'1,1'   => $pus_AckOk,
             		'1,7'   => $pus_AckOk,

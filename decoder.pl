@@ -34,18 +34,18 @@ while (<STDIN>) {
     $nblocks++;
     print "BUF IS <$_>\n" if $odebug;
 
-    #We only take ascii here
-    die("What you gave looks binary to me..\n") unless /^[[:ascii:]]*$/;
+    #Sanity check on input 
+    die("There are non ASCII characters in your input\n") unless /^[[:ascii:]]*$/;
 
-    #Nothing to do if input is simple: no header, no space
+    #If input is simple: no header, no space then proceed to decoding
     $buf = $_, goto DECODE if (/^[[:xdigit:]]*$/);
     my @lines = split(/\n/);
 
-    #Remove the typical addresses on the left
+    #Try to remove non ASCII characters as well as
+    #The typical addresses on the left
     my $line = ();
     foreach (@lines) {
         next if /^#/;
-
         #Is everything on one line, without header and spaces
         s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
         $line = $1;
@@ -54,7 +54,7 @@ while (<STDIN>) {
     }
     print "BUF IS <$buf>\n" if $odebug;
 
-    # DECODING starts here
+
   DECODE:
     $pstring = pack( qq{H*}, qq{$buf} );
 
@@ -69,28 +69,24 @@ while (<STDIN>) {
     }
     else {
 
-        #try without crc, good luck
+        #Decode anyway
         print "Warning, Crc seems wrong!\n";
         $decoded = $tmsourcepacket->parse($pstring);
     }
 
-    #Change fields to hex
-    my $dumper = Dumper($decoded);
-    foreach (@tohex) {
-        $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
-        my $hv = sprintf( "%#x", $1 );
-        $dumper =~ s/$1/$hv/;
-    }
-
-    #  print '/' . '-' x 100 . "\n";
     if ($odumper) {
+        #Change fields to hex in the Dumper output
+        my $dumper = Dumper($decoded);
+        foreach (@tohex) {
+           $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
+           my $hv = sprintf( "%#x", $1 );
+           $dumper =~ s/$1/$hv/;
+           }
         print $dumper;
     }
     else {
         TMPrint($decoded);
     }
 
-    #  print '\\' . '-' x 100 . "\n";
     print "/>\n";
-    print "\n";
 }

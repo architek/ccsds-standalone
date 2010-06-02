@@ -42,15 +42,16 @@ my $m_correct_packets_to_client = sub {
     #Get rest of fields
     my $f_sec_header = $f_data->{'TMSourceSecondaryHeader'};
     my $f_pus_t      = $f_sec_header->{'Service Type'}; my $f_pus_st     = $f_sec_header->{'Service SubType'};
-    my $f_pus_time   = $f_sec_header->{'Sat_Time'};
-    my $f_pus_version =
-      $f_sec_header->{'SecHeadFirstField'}->{'PUS Version Number'};
-    my $f_packet_length =
-      \$f_header->{'Packet Sequence Control'}->{'Packet Length'};
-    my $f_data_length =
-      $f_header->{'Packet Sequence Control'}->{'Source Data Length'};
-    my $f_data_ssc =
-      $f_header->{'Packet Sequence Control'}->{'Source Seq Count'};
+
+#    my $f_pus_time   = $f_sec_header->{'Sat_Time'};
+#    my $f_pus_version =
+#      $f_sec_header->{'SecHeadFirstField'}->{'PUS Version Number'};
+#    my $f_packet_length =
+#      \$f_header->{'Packet Sequence Control'}->{'Packet Length'};
+#    my $f_data_length =
+#      $f_header->{'Packet Sequence Control'}->{'Source Data Length'};
+#    my $f_data_ssc =
+#      $f_header->{'Packet Sequence Control'}->{'Source Seq Count'};
 
     #SSC check
     #FIXME ssc depends on f_pid or f_apid?

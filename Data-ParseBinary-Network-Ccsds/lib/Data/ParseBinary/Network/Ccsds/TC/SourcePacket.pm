@@ -49,17 +49,12 @@ our $TCPacketHeader = Struct('Packet Header',                         #
 our $tcsourcepacket= Struct('TC Source Packet',
   $TCPacketHeader,
   Struct('Packet Data Field',
-    If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
-      Struct('Data Field',
+    If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
             $TCSourceSecondaryHeader,
-            Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
       ),
-    ),
-    If ( sub { ! $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
-      Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
-    ),
+    Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
     UBInt16('Packet Error Control'),
-   )
+  )
 );
 
 require Exporter;

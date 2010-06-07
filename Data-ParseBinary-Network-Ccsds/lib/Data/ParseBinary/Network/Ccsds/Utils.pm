@@ -55,7 +55,7 @@ sub patch_crc {
 
   my $data=shift;
 
-  substr( $$data, -2 ) = pack( 'H*', calc_crc( substr( $$data, 0, -2 ) ) );
+  substr( $$data, -2 ) = pack( 'H4', calc_crc( substr( $$data, 0, -2 ) ) );
 
 }
 

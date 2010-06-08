@@ -2,28 +2,11 @@
 use strict;
 use warnings;
 
-use Getopt::Long;
 use Data::Dumper;
 use Data::ParseBinary::Network::Ccsds::Utils qw(verify_crc tm_verify_crc patch_crc);
 use Data::ParseBinary::Network::Ccsds::TM::SourcePacket
   qw($tmsourcepacket $scos_tmsourcepacket);
-use Data::ParseBinary::Network::Ccsds::TM::Printer qw(TMPrint $VERSION);
 use Data::ParseBinary::Network::Ccsds::TC::SourcePacket qw($tcsourcepacket);
-
-#Fields to convert in hex if dumper is used
-my @tohex = ('Packet Error Control');
-
-my $odebug   = 0;
-my $odumper  = 0;
-my $oshowver = 0;
-my $opts     = GetOptions(
-    'debug'   => \$odebug,     # do we want debug
-    'dumper'  => \$odumper,    # do we want to use tmprint or internal dumper
-    'version' => \$oshowver
-);
-
-die "Version $VERSION\n" if $oshowver;
-$Data::ParseBinary::print_debug_info = 1 if $odebug;
 
 $/ = '';                       # paragraph reads
 my $nblocks = 0;
@@ -33,7 +16,6 @@ while (<STDIN>) {
     my $decoded = ();
     my $pstring = ();
     $nblocks++;
-    print "BUF IS <$_>\n" if $odebug;
 
     #Sanity check on input 
     die("There are non ASCII characters in your input\n") unless /^[[:ascii:]]*$/;
@@ -53,7 +35,6 @@ while (<STDIN>) {
         $line =~ s/ //g;
         $buf .= $line;
     }
-    print "BUF IS <$buf>\n" if $odebug;
 
 
   DECODE:
@@ -75,25 +56,12 @@ while (<STDIN>) {
         $decoded = $tmsourcepacket->parse($pstring);
     }
 
-    if ($odumper) {
-        #Change fields to hex in the Dumper output
-        my $dumper = Dumper($decoded);
-        foreach (@tohex) {
-           $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
-           my $hv = sprintf( "%#x", $1 );
-           $dumper =~ s/$1/$hv/;
-           }
-        print $dumper;
-    }
-    else {
-#        TMPrint($decoded);
-    }
-
     #Get important fields
     my $header = $decoded->{'Packet Header'};
     my $dataf  = $decoded->{'Packet Data Field'};
     my $data   = $dataf->{'Data Field'};
     #Return if packet contain no data (time packet,..)
+    return unless defined($data);
 
     #Get rest of fields
     my $pid        = $header->{'Packet Id'}->{'Apid'}->{'PID'};
@@ -101,8 +69,6 @@ while (<STDIN>) {
     my $pus_data   = $data->{'PusData'};
     my $pus_t      = $sec_header->{'Service Type'};
     my $pus_st     = $sec_header->{'Service Subtype'};
-
-    print "$pus_t, $pus_st\n";
 
     #Modify service 18 subservice 131 ( pus_OBCP_dump )
     if ( join( ',', $pus_t, $pus_st ) eq '18,131' ) {

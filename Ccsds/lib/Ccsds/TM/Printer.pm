@@ -5,11 +5,7 @@ use strict;
 
 =head1 NAME
 
-Ccsds::TM::Printer - The great new Ccsds::TM::Printer!
-
-=head1 VERSION
-
-Version 0.01
+Ccsds::TM::Printer - Simple printer for decoding CCSDS TM Source Packets
 
 =cut
 
@@ -262,33 +258,12 @@ our @EXPORT = qw(TMPrint $VERSION);
 
 Quick summary of what the module does.
 
-Perhaps a little code snippet.
-
     use Ccsds::TM::Printer;
 
-    my $foo = Ccsds::TM::Printer->new();
+    my $decoded = Ccsds::TM::$tmsourcepacket->parse($pstring);
+    Ccsds::TM::TMPrint($decoded);
+
     ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
@@ -300,40 +275,11 @@ Please report any bugs or feature requests to C<bug-data-parsebinary-network-ccs
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-ParseBinary-Network-Ccsds>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds::TM::Printer
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-ParseBinary-Network-Ccsds>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Data-ParseBinary-Network-Ccsds>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Data-ParseBinary-Network-Ccsds>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Data-ParseBinary-Network-Ccsds/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT

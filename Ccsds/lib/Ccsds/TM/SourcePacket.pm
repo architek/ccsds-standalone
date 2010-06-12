@@ -5,11 +5,7 @@ use strict;
 
 =head1 NAME
 
-Ccsds::TM::SourcePacket - The great new Ccsds::TM::SourcePacket!
-
-=head1 VERSION
-
-Version 0.01
+Ccsds::TM::SourcePacket - Decoding Ccsds TM SourcePackets!
 
 =cut
 
@@ -122,33 +118,16 @@ our @EXPORT = qw($tmsourcepacket $scos_tmsourcepacket);
 
 Quick summary of what the module does.
 
-Perhaps a little code snippet.
-
     use Ccsds::TM::SourcePacket;
 
-    my $foo = Ccsds::TM::SourcePacket->new();
+    $input=<STDIN>;
+    die("There are non ASCII characters in your input\n") unless /^[[:ascii:]]*$/;
+    #convert input to binary
+    $pstring = pack( qq{H*}, qq{$input} );
+    print "Warning: The CRC is incorrect, decoding anyway\n" unless ( tm_verify_crc $buf) ;
+
+    my $foo = Ccsds::TM::SourcePacket::$tmsourcepacket->parse($pstring);
     ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
@@ -168,32 +147,6 @@ automatically be notified of progress on your bug as I make changes.
 You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds::TM::SourcePacket
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-ParseBinary-Network-Ccsds>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Data-ParseBinary-Network-Ccsds>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Data-ParseBinary-Network-Ccsds>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Data-ParseBinary-Network-Ccsds/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT

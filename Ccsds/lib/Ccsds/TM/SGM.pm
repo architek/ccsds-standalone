@@ -5,11 +5,7 @@ use strict;
 
 =head1 NAME
 
-Ccsds::TM::SGM - The great new Ccsds::TM::SGM!
-
-=head1 VERSION
-
-Version 0.01
+Ccsds::TM::SGM - GAL Specific lib for decoding TTR SGM. Only 2 items are decoded.
 
 =cut
 
@@ -63,38 +59,6 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw($sgm_read);
 
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Ccsds::TM::SGM;
-
-    my $foo = Ccsds::TM::SGM->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
-
 =head1 AUTHOR
 
 Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>
@@ -113,32 +77,6 @@ automatically be notified of progress on your bug as I make changes.
 You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds::TM::SGM
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-ParseBinary-Network-Ccsds>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Data-ParseBinary-Network-Ccsds>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Data-ParseBinary-Network-Ccsds>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Data-ParseBinary-Network-Ccsds/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT

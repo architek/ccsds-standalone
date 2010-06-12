@@ -7,10 +7,6 @@ use strict;
 
 Ccsds::TM::Pus - Collection for parsing PUS specific
 
-=head1 VERSION
-
-Version 1.02
-
 =cut
 
 our $VERSION = '1.4';
@@ -443,21 +439,9 @@ our @EXPORT = qw(
     $pus_parameter_report
 );
 
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use Ccsds::TM::Pus;
-
-    my $foo = Ccsds::TM::Pus->new();
-    ...
-
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+A list of primitives that are exported.  
 
 =head1 SUBROUTINES/METHODS
 
@@ -540,33 +524,6 @@ automatically be notified of progress on your bug as I make changes.
 You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds::TM::Pus
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-ParseBinary-Network-Ccsds>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Data-ParseBinary-Network-Ccsds>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Data-ParseBinary-Network-Ccsds>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Data-ParseBinary-Network-Ccsds/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
 
 =head1 LICENSE AND COPYRIGHT
 

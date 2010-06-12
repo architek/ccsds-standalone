@@ -4,3 +4,5 @@ Revision history for Data-ParseBinary-Network-Ccsds
         First version, released on an unsuspecting world.
 1.4     12/06/2010
         Put out ccsds from Data:ParseBinary and call the module simply Ccsds (less typing)
+
+  For detailed information, look at the gitorious git log

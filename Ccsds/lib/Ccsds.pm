@@ -5,48 +5,44 @@ use strict;
 
 =head1 NAME
 
-Ccsds - The great new Ccsds!
-
-=head1 VERSION
-
-Version 0.01
+Ccsds - Module used to decode or encode CCSDS TC/TM
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.4';
 
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+This library allows decoding as well as encoding of CCSDS stream defined in the PSS/ECSS standards from European Space Agency
 
-Perhaps a little code snippet.
 
     use Ccsds;
 
-    my $foo = Ccsds->new();
+    #Decode binary input as CCSDS TM Source Packet
+    my $tm         = $tmsourcepacket->parse($input);
+
+    my $header     = $tm->{'Packet Header'};
+    my $dataf      = $tm->{'Packet Data Field'};
+    my $data       = $dataf->{'Data Field'};
+    my $pid        = $header->{'Packet Id'}->{'Apid'}->{'PID'};
+    my $sec_header = $data->{'TMSourceSecondaryHeader'};
+    my $pus_data   = $data->{'PusData'};
+    my $pus_t      = $sec_header->{'Service Type'};
+    my $pus_st     = $sec_header->{'Service Subtype'};
+
+    my $ref_length = \$f_header->{'Packet Sequence Control'}->{'Packet Length'};
+
+    #Correct packet_length for some broken traffic
+    if ( $pid == 6 and $pus_t == 3 and $pus_st == 25 ) {
+        $$ref_length_packet_length += 2;
+    }
+
+    #Rebuild Telemetry
+    $data = $tmsourcepacket->build($decoded);
+    patch_crc(\$data);
+    
     ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
@@ -66,32 +62,6 @@ automatically be notified of progress on your bug as I make changes.
 You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data-ParseBinary-Network-Ccsds>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Data-ParseBinary-Network-Ccsds>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Data-ParseBinary-Network-Ccsds>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Data-ParseBinary-Network-Ccsds/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT

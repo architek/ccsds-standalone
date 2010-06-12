@@ -1,5 +1,5 @@
 ---
-abstract: 'The great new Data::ParseBinary::Network::Ccsds!'
+abstract: 'ESA/PSS set of utilities'
 author:
   - 'Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>'
   - 'Laurent KISLAIRE <teebeenator@gmail.com>'
@@ -14,7 +14,7 @@ license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
-name: Data-ParseBinary-Network-Ccsds
+name: Ccsds
 no_index:
   directory:
     - inc

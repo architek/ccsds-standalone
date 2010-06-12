@@ -1,11 +1,11 @@
-package Data::ParseBinary::Network::Ccsds::TM::SGM;
+package Data::ParseBinary::Network::Ccsds::TC::SourcePacket;
 
 use warnings;
 use strict;
 
 =head1 NAME
 
-Data::ParseBinary::Network::Ccsds::TM::SGM - The great new Data::ParseBinary::Network::Ccsds::TM::SGM!
+Data::ParseBinary::Network::Ccsds::TC::SourcePacket - The great new Data::ParseBinary::Network::Ccsds::TC::SourcePacket!
 
 =head1 VERSION
 
@@ -13,55 +13,53 @@ Version 0.01
 
 =cut
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 use Data::ParseBinary;
 
-our $sgm_read = Struct ('SGM_Slice',
-	UBInt16('LengthTotal'),
-	UBInt32('SGMId'),
-	UBInt32('Group'),
-	Switch('Data',sub { $_->ctx->{'Group'} },
-		{
-			47 => Struct('Group 47',
-				UBInt32('Offset'),
-				UBInt32('Length2'),
-				UBInt32('Validity'),
-				UBInt32('CrcGroup'),
-				UBInt32('NumberItems'),
-				Array(sub { $_->ctx->{'NumberItems'}},
-				  Struct('HK',
-					UBInt32('Sid'),
-					UBInt32('Enabled'),
-					UBInt32('CollInt'),
-					UBInt32('NPara'),
-					UBInt32('ParaList')
-				  )
-				)
-			      ),
-			46 => Struct('Group 46',
-				UBInt32('Offset'),
-				UBInt32('Length2'),
-				UBInt32('Validity'),
-				UBInt32('CrcGroup'),
+use Data::ParseBinary::Network::Ccsds::Common;
 
-				UBInt32('Coarse OBT'),
-				UBInt32('SubSeconds OBT'),
-				UBInt32('ASW Start Counter'),
-				UBInt32('Last SC Mode'),
-				UBInt32('FDIR Level 2'),
-				UBInt32('Last Active PM'),
-				UBInt32('PM Configuration'),
-			      )
-		},
-		_default_ => $DefaultPass,
-	)
+
+our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits
+  BitStruct('SecHeadFirstField',
+    BitField('Spare1',1),
+    BitField('PUS Version Number',3),
+    Nibble('Spare2')
+  ),
+  UBInt8('Service Type'),
+  UBInt8('Service Subtype'),
+  UBInt8('Destination Id'),
 );
 
+our $TCPacketHeader = Struct('Packet Header',                         #
+  BitStruct('Packet Id',
+    BitField('Version Number',3),
+    BitField('Type',1),
+    Flag('DFH Flag'),
+    $Apid
+  ),
+  BitStruct('Packet Sequence Control',
+    BitField('Segmentation Flags',2),
+    BitField('Source Seq Count',14),
+    UBInt16('Packet Length'),
+    Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 4*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
+  )
+);
+
+our $tcsourcepacket= Struct('TC Source Packet',
+  $TCPacketHeader,
+  Struct('Packet Data Field',
+    If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
+            $TCSourceSecondaryHeader,
+      ),
+    Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
+    UBInt16('Packet Error Control'),
+  )
+);
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($sgm_read);
+our @EXPORT = qw($tcsourcepacket $TCPacketHeader $TCSourceSecondaryHeader);
 
 =head1 SYNOPSIS
 
@@ -69,9 +67,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use Data::ParseBinary::Network::Ccsds::TM::SGM;
+    use Data::ParseBinary::Network::Ccsds::TC::SourcePacket;
 
-    my $foo = Data::ParseBinary::Network::Ccsds::TM::SGM->new();
+    my $foo = Data::ParseBinary::Network::Ccsds::TC::SourcePacket->new();
     ...
 
 =head1 EXPORT
@@ -112,7 +110,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Data::ParseBinary::Network::Ccsds::TM::SGM
+    perldoc Data::ParseBinary::Network::Ccsds::TC::SourcePacket
 
 
 You can also look for information at:
@@ -154,4 +152,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Data::ParseBinary::Network::Ccsds::TM::SGM
+1; # End of Data::ParseBinary::Network::Ccsds::TC::SourcePacket

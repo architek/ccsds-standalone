@@ -1,11 +1,11 @@
-package Data::ParseBinary::Network::Ccsds::TM::Printer;
+package Ccsds::TM::Printer;
 
 use warnings;
 use strict;
 
 =head1 NAME
 
-Data::ParseBinary::Network::Ccsds::TM::Printer - The great new Data::ParseBinary::Network::Ccsds::TM::Printer!
+Ccsds::TM::Printer - The great new Ccsds::TM::Printer!
 
 =head1 VERSION
 
@@ -13,7 +13,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 use Switch;
 use Data::Dumper;
@@ -264,9 +264,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use Data::ParseBinary::Network::Ccsds::TM::Printer;
+    use Ccsds::TM::Printer;
 
-    my $foo = Data::ParseBinary::Network::Ccsds::TM::Printer->new();
+    my $foo = Ccsds::TM::Printer->new();
     ...
 
 =head1 EXPORT
@@ -307,7 +307,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Data::ParseBinary::Network::Ccsds::TM::Printer
+    perldoc Ccsds::TM::Printer
 
 
 You can also look for information at:
@@ -349,4 +349,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Data::ParseBinary::Network::Ccsds::TM::Printer
+1; # End of Ccsds::TM::Printer

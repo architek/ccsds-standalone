@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
-name     'Data-ParseBinary-Network-Ccsds';
-all_from 'lib/Data/ParseBinary/Network/Ccsds.pm';
+name     'Ccsds';
+all_from 'lib/Ccsds.pm';
 author   q{Laurent KISLAIRE <teebeenator@gmail.com>};
 license  'perl';
 

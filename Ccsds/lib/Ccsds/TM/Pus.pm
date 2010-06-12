@@ -1,11 +1,11 @@
-package Data::ParseBinary::Network::Ccsds::TM::Pus;
+package Ccsds::TM::Pus;
 
 use warnings;
 use strict;
 
 =head1 NAME
 
-Data::ParseBinary::Network::Ccsds::TM::Pus - Collection for parsing PUS specific
+Ccsds::TM::Pus - Collection for parsing PUS specific
 
 =head1 VERSION
 
@@ -13,13 +13,13 @@ Version 1.02
 
 =cut
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 use Data::ParseBinary;
-use Data::ParseBinary::Network::Ccsds::Common;
-use Data::ParseBinary::Network::Ccsds::TM::RM;
-use Data::ParseBinary::Network::Ccsds::TM::SGM;
-use Data::ParseBinary::Network::Ccsds::TC::SourcePacket;   
+use Ccsds::Common;
+use Ccsds::TM::RM;
+use Ccsds::TM::SGM;
+use Ccsds::TC::SourcePacket;   
 
 our $pus_AckOk = Struct('AckOk',
   UBInt16('TC Packet Id'),
@@ -449,9 +449,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use Data::ParseBinary::Network::Ccsds::TM::Pus;
+    use Ccsds::TM::Pus;
 
-    my $foo = Data::ParseBinary::Network::Ccsds::TM::Pus->new();
+    my $foo = Ccsds::TM::Pus->new();
     ...
 
 =head1 EXPORT
@@ -539,7 +539,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Data::ParseBinary::Network::Ccsds::TM::Pus
+    perldoc Ccsds::TM::Pus
 
 
 You can also look for information at:
@@ -581,4 +581,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Data::ParseBinary::Network::Ccsds::TM::Pus
+1; # End of Ccsds::TM::Pus

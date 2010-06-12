@@ -1,11 +1,11 @@
-package Data::ParseBinary::Network::Ccsds::TC::SourcePacket;
+package Ccsds::Common;
 
 use warnings;
 use strict;
 
 =head1 NAME
 
-Data::ParseBinary::Network::Ccsds::TC::SourcePacket - The great new Data::ParseBinary::Network::Ccsds::TC::SourcePacket!
+Ccsds::Common - The great new Ccsds::Common!
 
 =head1 VERSION
 
@@ -13,53 +13,46 @@ Version 0.01
 
 =cut
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 use Data::ParseBinary;
 
-use Data::ParseBinary::Network::Ccsds::Common;
-
-
-our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits
-  BitStruct('SecHeadFirstField',
-    BitField('Spare1',1),
-    BitField('PUS Version Number',3),
-    Nibble('Spare2')
-  ),
-  UBInt8('Service Type'),
-  UBInt8('Service Subtype'),
-  UBInt8('Destination Id'),
+our $Sat_Time = Struct( 'Sat_Time',
+    UBInt32('Seconds'),
+    UBInt16('SubSeconds'),
+    Value(
+        'OBT', sub { $_->ctx->{'Seconds'} + $_->ctx->{'SubSeconds'} / 65535 }
+    )
 );
 
-our $TCPacketHeader = Struct('Packet Header',                         #
-  BitStruct('Packet Id',
-    BitField('Version Number',3),
-    BitField('Type',1),
-    Flag('DFH Flag'),
-    $Apid
-  ),
-  BitStruct('Packet Sequence Control',
-    BitField('Segmentation Flags',2),
-    BitField('Source Seq Count',14),
-    UBInt16('Packet Length'),
-    Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 4*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
-  )
+our $Pid = Enum(
+    BitField( 'PID', 7 ),
+      TIME        => 0x0,
+      SYS         => 0x10,
+      AOC         => 0x11,
+      PF          => 0x12,
+      PL          => 0x13,
+      PFSUA_STMTC => 0x22,
+      PFSUA_TMTC  => 0x24,
+      PFSUB_STMTC => 0x2A,
+      PFSUB_TMTC  => 0x2C,
+      PLSU_C_Band => 0x32,
+      PLSU_PRS    => 0x33,
+      PLSU_TMTC   => 0x34,
+      NSGU_S      => 0x40,
+      NSGU_L      => 0x48,
+      _default_   => $DefaultPass
 );
 
-our $tcsourcepacket= Struct('TC Source Packet',
-  $TCPacketHeader,
-  Struct('Packet Data Field',
-    If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
-            $TCSourceSecondaryHeader,
-      ),
-    Array(sub { $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} }, UBInt8('TC Data')),
-    UBInt16('Packet Error Control'),
-  )
+our $Apid = BitStruct('Apid',
+  $Pid,
+  Nibble('Pcat')
 );
+
 
 require Exporter;
-our @ISA = qw(Exporter);
-our @EXPORT = qw($tcsourcepacket $TCPacketHeader $TCSourceSecondaryHeader);
+our @ISA    = qw(Exporter);
+our @EXPORT = qw($Sat_Time $Pid $Apid);
 
 =head1 SYNOPSIS
 
@@ -67,9 +60,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use Data::ParseBinary::Network::Ccsds::TC::SourcePacket;
+    use Ccsds::Common;
 
-    my $foo = Data::ParseBinary::Network::Ccsds::TC::SourcePacket->new();
+    my $foo = Ccsds::Common->new();
     ...
 
 =head1 EXPORT
@@ -110,7 +103,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Data::ParseBinary::Network::Ccsds::TC::SourcePacket
+    perldoc Ccsds::Common
 
 
 You can also look for information at:
@@ -152,4 +145,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Data::ParseBinary::Network::Ccsds::TC::SourcePacket
+1;    # End of Ccsds::Common

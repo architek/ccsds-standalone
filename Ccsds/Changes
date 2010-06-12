@@ -2,4 +2,5 @@ Revision history for Data-ParseBinary-Network-Ccsds
 
 0.01    Date/time
         First version, released on an unsuspecting world.
-
+1.4     12/06/2010
+        Put out ccsds from Data:ParseBinary and call the module simply Ccsds (less typing)

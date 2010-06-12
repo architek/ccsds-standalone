@@ -1,11 +1,11 @@
-package Data::ParseBinary::Network::Ccsds::Common;
+package Ccsds::TM::SGM;
 
 use warnings;
 use strict;
 
 =head1 NAME
 
-Data::ParseBinary::Network::Ccsds::Common - The great new Data::ParseBinary::Network::Ccsds::Common!
+Ccsds::TM::SGM - The great new Ccsds::TM::SGM!
 
 =head1 VERSION
 
@@ -13,46 +13,55 @@ Version 0.01
 
 =cut
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 use Data::ParseBinary;
 
-our $Sat_Time = Struct( 'Sat_Time',
-    UBInt32('Seconds'),
-    UBInt16('SubSeconds'),
-    Value(
-        'OBT', sub { $_->ctx->{'Seconds'} + $_->ctx->{'SubSeconds'} / 65535 }
-    )
-);
+our $sgm_read = Struct ('SGM_Slice',
+	UBInt16('LengthTotal'),
+	UBInt32('SGMId'),
+	UBInt32('Group'),
+	Switch('Data',sub { $_->ctx->{'Group'} },
+		{
+			47 => Struct('Group 47',
+				UBInt32('Offset'),
+				UBInt32('Length2'),
+				UBInt32('Validity'),
+				UBInt32('CrcGroup'),
+				UBInt32('NumberItems'),
+				Array(sub { $_->ctx->{'NumberItems'}},
+				  Struct('HK',
+					UBInt32('Sid'),
+					UBInt32('Enabled'),
+					UBInt32('CollInt'),
+					UBInt32('NPara'),
+					UBInt32('ParaList')
+				  )
+				)
+			      ),
+			46 => Struct('Group 46',
+				UBInt32('Offset'),
+				UBInt32('Length2'),
+				UBInt32('Validity'),
+				UBInt32('CrcGroup'),
 
-our $Pid = Enum(
-    BitField( 'PID', 7 ),
-      TIME        => 0x0,
-      SYS         => 0x10,
-      AOC         => 0x11,
-      PF          => 0x12,
-      PL          => 0x13,
-      PFSUA_STMTC => 0x22,
-      PFSUA_TMTC  => 0x24,
-      PFSUB_STMTC => 0x2A,
-      PFSUB_TMTC  => 0x2C,
-      PLSU_C_Band => 0x32,
-      PLSU_PRS    => 0x33,
-      PLSU_TMTC   => 0x34,
-      NSGU_S      => 0x40,
-      NSGU_L      => 0x48,
-      _default_   => $DefaultPass
-);
-
-our $Apid = BitStruct('Apid',
-  $Pid,
-  Nibble('Pcat')
+				UBInt32('Coarse OBT'),
+				UBInt32('SubSeconds OBT'),
+				UBInt32('ASW Start Counter'),
+				UBInt32('Last SC Mode'),
+				UBInt32('FDIR Level 2'),
+				UBInt32('Last Active PM'),
+				UBInt32('PM Configuration'),
+			      )
+		},
+		_default_ => $DefaultPass,
+	)
 );
 
 
 require Exporter;
-our @ISA    = qw(Exporter);
-our @EXPORT = qw($Sat_Time $Pid $Apid);
+our @ISA = qw(Exporter);
+our @EXPORT = qw($sgm_read);
 
 =head1 SYNOPSIS
 
@@ -60,9 +69,9 @@ Quick summary of what the module does.
 
 Perhaps a little code snippet.
 
-    use Data::ParseBinary::Network::Ccsds::Common;
+    use Ccsds::TM::SGM;
 
-    my $foo = Data::ParseBinary::Network::Ccsds::Common->new();
+    my $foo = Ccsds::TM::SGM->new();
     ...
 
 =head1 EXPORT
@@ -103,7 +112,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Data::ParseBinary::Network::Ccsds::Common
+    perldoc Ccsds::TM::SGM
 
 
 You can also look for information at:
@@ -145,4 +154,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1;    # End of Data::ParseBinary::Network::Ccsds::Common
+1; # End of Ccsds::TM::SGM

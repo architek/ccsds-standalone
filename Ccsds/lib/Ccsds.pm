@@ -15,6 +15,7 @@ our $VERSION = '1.4';
 =head1 SYNOPSIS
 
 This library allows decoding as well as encoding of CCSDS stream defined in the PSS/ECSS standards from European Space Agency
+=cut
 
 
     use Ccsds;

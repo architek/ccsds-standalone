@@ -3,10 +3,10 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Data::ParseBinary::Network::Ccsds::Utils qw(verify_crc tm_verify_crc patch_crc);
-use Data::ParseBinary::Network::Ccsds::TM::SourcePacket
+use Ccsds::Utils qw(verify_crc tm_verify_crc patch_crc);
+use Ccsds::TM::SourcePacket
   qw($tmsourcepacket $scos_tmsourcepacket);
-use Data::ParseBinary::Network::Ccsds::TC::SourcePacket qw($tcsourcepacket);
+use Ccsds::TC::SourcePacket qw($tcsourcepacket);
 
 $/ = '';                       # paragraph reads
 my $nblocks = 0;

@@ -3,10 +3,10 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Data::ParseBinary::Network::Ccsds::Utils qw(verify_crc tm_verify_crc);
-use Data::ParseBinary::Network::Ccsds::TM::SourcePacket
+use Ccsds::Utils qw(verify_crc tm_verify_crc);
+use Ccsds::TM::SourcePacket
   qw($tmsourcepacket_parser $scos_tmsourcepacket_parser);
-use Data::ParseBinary::Network::Ccsds::TM::Printer;
+use Ccsds::TM::Printer;
 
 my $mdebug = 0;
 $mdebug                              = 1 if exists $ARGV[0];

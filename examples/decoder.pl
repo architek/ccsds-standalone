@@ -4,10 +4,10 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
-use Data::ParseBinary::Network::Ccsds::Utils qw(verify_crc tm_verify_crc);
-use Data::ParseBinary::Network::Ccsds::TM::SourcePacket
+use Ccsds::Utils qw(verify_crc tm_verify_crc);
+use Ccsds::TM::SourcePacket
   qw($tmsourcepacket $scos_tmsourcepacket);
-use Data::ParseBinary::Network::Ccsds::TM::Printer qw(TMPrint $VERSION);
+use Ccsds::TM::Printer qw(TMPrint $VERSION);
 
 #Fields to convert in hex if dumper is used
 my @tohex = ('Packet Error Control');

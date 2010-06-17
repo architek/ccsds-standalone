@@ -7,10 +7,6 @@ use strict;
 
 Ccsds::Utils - Set of utilities to work with CCSDS Standards
 
-=head1 VERSION
-
-Version 1.2
-
 =cut
 
 our $VERSION = '1.4';

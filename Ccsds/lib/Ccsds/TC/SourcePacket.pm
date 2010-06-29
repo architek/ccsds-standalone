@@ -13,7 +13,7 @@ our $VERSION = '1.4';
 
 use Data::ParseBinary;
 
-use Data::ParseBinary::Network::Ccsds::Common;
+use Ccsds::Common;
 
 
 our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits

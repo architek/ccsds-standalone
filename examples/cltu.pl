@@ -42,10 +42,11 @@ $Data::ParseBinary::print_debug_info = 1 if $odebug;
 
 $/ = '';                       # paragraph reads
 my $nblocks = 0;
+my $state=0;                   # Segment Sequence state is "Outside a packet"
+my $segments_data=();
 while (<STDIN>) {
     chomp;
     my $buf     = ();
-    my $pstring = ();
     $nblocks++;
     print "BUF IS <$_>\n" if $odebug;
 
@@ -71,7 +72,7 @@ while (<STDIN>) {
        print "$buf\n" ;
     }
   DECODE:
-    $pstring = pack( qq{H*}, qq{$buf} );
+    my $pstring = pack( qq{H*}, qq{$buf} );
 
     #Decode the complete CLTU, incl. CBH
     my $cltu=$Cltu->parse($pstring);
@@ -82,16 +83,34 @@ while (<STDIN>) {
     $cltu->{'Cltu Data'}=();
     print Dumper($cltu);
 
-#We currently only handle standalone segment (1 packet not split into several segment)
-    return unless $cltu->{'Segment Header'}->{'Sequence Flags'} eq 3; 
+# State machine: Start with State=0
+# 0 1 First Segment of TC User Data Unit on one MAP                         State goes from 0 to 1
+# 0 0 Continuing Segment of TC User Data Unit on one MAP                    Push data
+# 1 0 Last Segment of TC User Data Unit on one MAP                          State goes from 1 to 0, decode packet
+# 1 1 No segmentation (one TC User Data Unit or multiple complete packets)  Decode Packet
 
-#Packet is at start + frameheader+segmentheader
-    my $pkt=substr($cltu_clean,(5+1)*2);
-    print $pkt if $odebug;
-    
-    #decode the contained packet
-    my $pstring2 = pack( qq{H*}, qq{$pkt} );
-    my $packet=$tcsourcepacket->parse($pstring2);
-
-    print Dumper($packet);
+    my $seqf=$cltu->{'Segment Header'}->{'Sequence Flags'};
+    if ($state==1) {
+#We are in a packet 
+        die "Wrong segment, we received Sequence flag $seqf while we expect 0 or 2\n" if ($seqf==1 or $seqf==3) ;
+#Push segment datas (frames in fact) = frameheader+segmentheader
+        $segments_data.=substr($cltu_clean,(5+1)*2);
+        if ($seqf==2) {
+#Last segment
+          my $pstring2 = pack( qq{H*}, qq{$segments_data} );
+          my $packet=$tcsourcepacket->parse($pstring2);
+          print Dumper($packet);
+        } 
+    } else {
+        die "Wrong segment, we received Sequence flag $seqf while we expect 1 or 3\n" if ($seqf==0 or $seqf==2) ;
+        if ($seqf==1) {
+          $state++;
+        } else {
+#No segmentation, decode packet 
+          $segments_data=substr($cltu_clean,(5+1)*2);
+          my $pstring2 = pack( qq{H*}, qq{$segments_data} );
+          my $packet=$tcsourcepacket->parse($pstring2);
+          print Dumper($packet);
+        }
+    }
 }

@@ -17,28 +17,28 @@ use Ccsds::Common;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',
-  BitStruct('SecHeadFirstField',
+my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 10 bytes
+  BitStruct('SecHeadFirstField',                                  #1 byte
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
     Nibble('Spare2')
   ),
-  UBInt8('Service Type'),
-  UBInt8('Service Subtype'),
-  UBInt8('Destination Id'),
-  $Sat_Time,
+  UBInt8('Service Type'),                                         #1 byte
+  UBInt8('Service Subtype')                                       #1 byte
+  UBInt8('Destination Id')                                        #1 byte
+  $Sat_Time                                                       #6 bytes
 );
 
 
 our $tmsourcepacket = Struct('TM Source Packet',
-  Struct('Packet Header',
-        BitStruct('Packet Id',
+  Struct('Packet Header',                                         ### 6 bytes
+        BitStruct('Packet Id',                                    #5+11 bits
           BitField('Version Number',3),
           BitField('Type',1),
           Flag('DFH Flag'),
           $Apid
         ),
-        BitStruct('Packet Sequence Control',
+        BitStruct('Packet Sequence Control',                      #16+16 bits
           BitField('Segmentation Flags',2),
           BitField('Source Seq Count',14),
           UBInt16('Packet Length'),
@@ -49,7 +49,7 @@ our $tmsourcepacket = Struct('TM Source Packet',
   Struct('Packet Data Field',
     If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
       Struct('Data Field',
-            $TMSourceSecondaryHeader,
+            $TMSourceSecondaryHeader,                             ### 10 bytes
             Switch('PusData', sub {  join(',', $_->ctx->{TMSourceSecondaryHeader}->{'Service Type'},$_->ctx->{TMSourceSecondaryHeader}->{'Service Subtype'})},
             {
                 '1,1'   => $pus_AckOk,

@@ -33,9 +33,9 @@ use constant {
 };
 
 sub remove_cbh {
+    ( my $idata, my $fl ) = @_;
     my $odata;
     my $offset = 0;
-    ( my $idata, my $fl ) = @_;
 
     while ( $fl > 0 ) {
         my $l = 7;
@@ -60,18 +60,14 @@ while (<STDIN>) {
     chomp;
     my $buf = ();
     $nblocks++;
-    print "BUF IS <$_>\n" if $odebug;
+    print "BUF is:\n$_\n" if $odebug;
 
     #Sanity check on input
     die("There are non ASCII characters in your input\n")
       unless /^[[:ascii:]]*$/;
 
-    #If input is simple: no header, no space then proceed to decoding
-    $buf = $_, goto DECODE if (/^[[:xdigit:]]*$/);
     my @lines = split(/\n/);
 
-    #Try to remove non ASCII characters as well as
-    #The typical addresses on the left
     my $line = ();
     foreach (@lines) {
         next if /^#/;
@@ -81,15 +77,15 @@ while (<STDIN>) {
         $buf .= $_;
     }
 
-    #    if ($odebug) {
-    print "\n";
-    print "SSSS"
+    if ($odebug) {
+      my $cblock=int(length($buf)/2-2-8)/7;
+      print "SSSS"
       . "FHFHFHFHFHSH"
       . "╭╮╳╳"
-      . "╭╮╭╮╭╮╭╮╭╮╭╮╭╮╳╳" x 3 . "\n";
-    print "$buf\n";
+      . "╭╮╭╮╭╮╭╮╭╮╭╮╭╮╳╳" x ($cblock-1) . "T" x 16 . "\n";
+      print "$buf\n";
 
-    #   }
+    }
   DECODE:
     my $pstring = pack( qq{H*}, qq{$buf} );
 
@@ -105,6 +101,7 @@ while (<STDIN>) {
     print Dumper($cltu);
 
     my $seqf = $cltu->{'Segment Header'}->{'Sequence Flags'};
+    #Push segment datas = frameheader+segmentheader
     $segments_data .= substr( $cltu_clean, ( 5 + 1 ) * 2 );
     if ( $state == IN ) {
 
@@ -113,7 +110,6 @@ while (<STDIN>) {
 "Wrong segment, we received Sequence flag $seqf while we expect 0 or 2\n"
           unless ( $seqf == CONT or $seqf == LAST );
 
-        #Push segment datas (frames in fact) = frameheader+segmentheader
         if ( $seqf == LAST ) {
             my $pstring2 = pack( qq{H*}, qq{$segments_data} );
             my $packet = $tcsourcepacket->parse($pstring2);
@@ -123,7 +119,7 @@ while (<STDIN>) {
     }
     else {
 
-        #We are still out a packet
+        #We are still out of a packet
         die
 "Wrong segment, we received Sequence flag $seqf while we expect 1 or 3\n"
           unless ( $seqf == FIRST or $seqf == STAND );

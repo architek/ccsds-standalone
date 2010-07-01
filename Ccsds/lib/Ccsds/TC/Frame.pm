@@ -26,13 +26,30 @@ my $TCFrameHeader= BitStruct('TC Frame Header',
 
 our $TCFrame= Struct('TCFrame',
     $TCFrameHeader, 
-    Array(sub { $_->ctx(1)->{'TC Frame Header'}->{'Frame Length'} }, UBInt8('TC Frame Data')),
+    Array(sub { $_->ctx->{'TC Frame Header'}->{'Frame Length'} }, UBInt8('TC Frame Data')),
     UBInt16('Frame Error Control'),
 );
 
+my $TCSegmentHeader = BitStruct('Segment Header',
+      BitField('Sequence Flags',2),
+      BitField('MapId',6),
+);
+
+our $Cltu= Struct('Cltu',
+    Magic("\xEB\x90"),
+    $TCFrameHeader,
+    $TCSegmentHeader,
+#Length of the CLTU = 10 + ((Total length of the Frames + 6) / 7) * 8
+    Value('Cltu Length', sub { 10 + int( ($_->ctx->{'TC Frame Header'}->{'Frame Length'} +1 + 6 )/7)*8 }),
+    
+    Array(sub { $_->ctx->{'Cltu Length'} - 2 - 5 - 1 }, UBInt8('Cltu Data')),
+
+);
+
+
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($TCFrame);
+our @EXPORT = qw($TCFrame $Cltu);
 
 =head1 AUTHOR
 
@@ -58,4 +75,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Ccsds::TC::SourcePacket
+1; # End of Ccsds::TC::Frame.pm

@@ -61,7 +61,7 @@ while (<STDIN>) {
     my $dataf  = $decoded->{'Packet Data Field'};
     my $data   = $dataf->{'Data Field'};
     #Return if packet contain no data (time packet,..)
-    return unless defined($data);
+    next unless defined($data);
 
     #Get rest of fields
     my $pid        = $header->{'Packet Id'}->{'Apid'}->{'PID'};

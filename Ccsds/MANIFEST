@@ -13,6 +13,7 @@ lib/Ccsds/TM/RM.pm
 lib/Ccsds/TM/SGM.pm
 lib/Ccsds/TC/Frame.pm
 lib/Ccsds/TC/SourcePacket.pm
+lib/Ccsds/TC/Printer.pm
 t/00-load.t
 t/manifest.t
 t/pod-coverage.t

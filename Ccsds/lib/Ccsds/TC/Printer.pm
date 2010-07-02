@@ -11,12 +11,6 @@ Ccsds::TC::Printer - Simple printer for decoding CCSDS TC Structures
 
 our $VERSION = '1.6';
 
-use Switch;
-use Data::Dumper;
-
-$Data::Dumper::Terse = 1;
-$Data::Dumper::Indent = 3;
-
 # Takes CLTU (EB90,CBH...,TAIL) Ascii representation as input
 sub CltuPrint {
 

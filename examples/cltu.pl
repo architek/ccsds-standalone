@@ -5,7 +5,7 @@ use warnings;
 use Getopt::Long;
 use Data::Dumper;
 use Ccsds::Utils qw(decode_cltu_data);
-use Ccsds::TC::Printer qw(CltuPrint);
+use Ccsds::TC::Printer qw(CltuPrint $VERSION);
 use Ccsds::TC::Frame qw($Cltu $TCFrame);
 use Ccsds::TC::SourcePacket qw($tcsourcepacket);
 
@@ -29,6 +29,8 @@ use constant {
     FRAMEHEADER_LEN => 5,    # Header lengths  for packet extraction
     SEGMENTHEADER_LEN => 1   #
 };
+
+die "Version $VERSION\n" if $oshowver;
 
 $Data::ParseBinary::print_debug_info = 1 if $odebug;
 $/ = '';    # paragraph reads

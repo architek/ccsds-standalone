@@ -9,7 +9,7 @@ Ccsds::TM::Printer - Simple printer for decoding CCSDS TM Source Packets
 
 =cut
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 use Switch;
 use Data::Dumper;

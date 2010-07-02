@@ -9,7 +9,7 @@ Ccsds::TM::SourcePacket - Decoding Ccsds TM SourcePackets!
 
 =cut
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 use Data::ParseBinary;
 
@@ -24,8 +24,8 @@ my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 10 bytes
     Nibble('Spare2')
   ),
   UBInt8('Service Type'),                                         #1 byte
-  UBInt8('Service Subtype')                                       #1 byte
-  UBInt8('Destination Id')                                        #1 byte
+  UBInt8('Service Subtype'),                                      #1 byte
+  UBInt8('Destination Id'),                                       #1 byte
   $Sat_Time                                                       #6 bytes
 );
 

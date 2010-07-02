@@ -9,7 +9,7 @@ Ccsds::Utils - Set of utilities to work with CCSDS Standards
 
 =cut
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 use Digest::CRC qw(crcccitt);
 
@@ -28,7 +28,7 @@ sub verify_crc {
     my $sdata = pack( "H*", $data );
     my $crc = calc_crc $sdata;
 
-    print 'Calculated Crc:' . sprintf( '%x', $crc ) . "\n" if $::mdebug;
+    print 'Calculated Crc:' . sprintf( '%x', $crc ) . "\n" if $::odebug;
 
     return lc $crc eq lc $crc_in;
 
@@ -37,7 +37,7 @@ sub verify_crc {
 #Takes input as hex ascii representation, no space
 sub tm_verify_crc {
 
-    print 'Included Crc:' . substr( $_[0], -4 ) . "\n" if $::mdebug;
+    print 'Included Crc:' . substr( $_[0], -4 ) . "\n" if $::odebug;
 
     #split string into data,crc
     ( my $data, my $crc_in ) =
@@ -62,9 +62,27 @@ sub tm_verify_crc_bin {
 
 }
 
+#Removes CBH 1 bit correction code
+#Takes input as hex ascii representation
+sub remove_cbh {
+    my $odata;
+    my $offset = 0;
+    my $cbh_len= 7;
+    ( my $idata, my $fl ) = @_;
+    while ( $fl > 0 ) {
+        my $l = $cbh_len;
+        $l = $fl if ( $fl < $cbh_len );
+        $odata .= substr( $idata, $offset, $l * 2 );
+        $offset += 2*($cbh_len+1);
+        $fl -= $cbh_len;
+    }
+    print "Included datas:\n    $odata\n" if $::odebug;
+    return $odata;
+}
+
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc remove_cbh);
 
 =head1 AUTHOR
 

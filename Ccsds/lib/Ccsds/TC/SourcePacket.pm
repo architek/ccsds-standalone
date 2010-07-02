@@ -9,7 +9,7 @@ Ccsds::TC::SourcePacket - Decoding/Encoding of TC Source Packets
 
 =cut
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 use Data::ParseBinary;
 

@@ -12,9 +12,10 @@ use Ccsds::TM::Printer qw(TMPrint $VERSION);
 #Fields to convert in hex if dumper is used
 my @tohex = ('Packet Error Control');
 
-my $odebug   = 0;
+our $odebug   = 0;             
 my $odumper  = 0;
 my $oshowver = 0;
+
 my $opts     = GetOptions(
     'debug'   => \$odebug,     # do we want debug
     'dumper'  => \$odumper,    # do we want to use tmprint or internal dumper

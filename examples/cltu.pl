@@ -4,15 +4,16 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
-use Ccsds::Utils qw(verify_crc tm_verify_crc);
+use Ccsds::Utils qw(remove_cbh);
 use Ccsds::TC::Frame qw($Cltu $TCFrame);
 use Ccsds::TC::SourcePacket qw($tcsourcepacket);
 
-my $odebug   = 0;
+our $odebug   = 0;
 my $odumper  = 0;
 my $oshowver = 0;
 my $opts     = GetOptions(
     'debug'   => \$odebug,     # do we want debug
+#TODO TCPrint
     'dumper'  => \$odumper,    # do we want to use tmprint or internal dumper
     'version' => \$oshowver
 );
@@ -31,25 +32,6 @@ use constant {
     OUT   => 0,
     IN    => 1
 };
-
-sub remove_cbh {
-    ( my $idata, my $fl ) = @_;
-    my $odata;
-    my $offset = 0;
-
-    while ( $fl > 0 ) {
-        my $l = 7;
-        $l = $fl if ( $fl < 7 );
-
-        $odata .= substr( $idata, $offset, $l * 2 );
-        $offset += 16;
-        $fl -= 7;
-    }
-
-    print "    " . $idata . "\n" if $odebug;
-    print "    " . $odata . "\n" if $odebug;
-    return $odata;
-}
 
 $Data::ParseBinary::print_debug_info = 1 if $odebug;
 $/ = '';    # paragraph reads
@@ -79,8 +61,11 @@ while (<STDIN>) {
 
     if ($odebug) {
       my $cblock=int(length($buf)/2-2-8)/7;
+#StartSequence
       print "SSSS"
+#Frame and Segment Headers
       . "FHFHFHFHFHSH"
+#Show ClodeBlocks locations
       . "╭╮╳╳"
       . "╭╮╭╮╭╮╭╮╭╮╭╮╭╮╳╳" x ($cblock-1) . "T" x 16 . "\n";
       print "$buf\n";

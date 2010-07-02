@@ -13,18 +13,18 @@ our $VERSION = '1.6';
 
 use Data::ParseBinary;
 
-my $TMFrameHeader= BitStruct('TM Frame Header',
+my $TMFrameHeader= BitStruct('TM Frame Header', #6 bytes
     BitField('Version Number Frame',2),         #16 bits
     BitField('SpaceCraftId',10),
     BitField('Virtual Channel Id',3),           
     BitField('Operation Flag',1),
-    UBInt8('Master Channel Frame Count'),
-    UBInt8('Virtual Channel Frame Count'),
-    BitField('Sec Header',1),
+    UBInt8('Master Channel Frame Count'),       #1 byte
+    UBInt8('Virtual Channel Frame Count'),      #1 byte
+    BitField('Sec Header',1),                   #16 bits
     BitField('Sync Flag',1),
     BitField('Packet Order Flag',1),
     BitField('Segment Length Id',2),
-    BitField('First Header Pointer',10), 
+    BitField('First Header Pointer',11), 
 );
 
 require Exporter;

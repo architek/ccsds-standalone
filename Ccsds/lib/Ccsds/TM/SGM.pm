@@ -9,7 +9,7 @@ Ccsds::TM::SGM - GAL Specific lib for decoding TTR SGM. Only 2 items are decoded
 
 =cut
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 use Data::ParseBinary;
 

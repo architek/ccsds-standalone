@@ -9,7 +9,7 @@ Ccsds::TM::Pus - Collection for parsing PUS specific
 
 =cut
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 use Data::ParseBinary;
 use Ccsds::Common;

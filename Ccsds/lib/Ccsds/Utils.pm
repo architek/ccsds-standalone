@@ -9,7 +9,7 @@ Ccsds::Utils - Set of utilities to work with CCSDS Standards
 
 =cut
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 use Digest::CRC qw(crcccitt);
 

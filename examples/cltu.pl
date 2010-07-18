@@ -34,6 +34,8 @@ die "Version $VERSION\n" if $oshowver;
 
 $Data::ParseBinary::print_debug_info = 1 if $odebug;
 $/ = '';    # paragraph reads
+$|++;       # autoflush stdout
+
 my $nblocks       = 0;
 my $state         = OUT;    # Segment Sequence state is "Outside a packet"
 my $segments_data = ();

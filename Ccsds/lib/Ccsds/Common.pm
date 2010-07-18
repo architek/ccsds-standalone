@@ -9,7 +9,7 @@ Ccsds::Common - Common Structures to CCSDS Standards
 
 =cut
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 use Data::ParseBinary;
 

@@ -9,7 +9,7 @@ Ccsds::TM::RM - GAL Specific lib for decoding TTR RM Log
 
 =cut
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 use Data::ParseBinary;
 

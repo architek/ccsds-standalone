@@ -9,7 +9,7 @@ Ccsds - Module used to decode or encode CCSDS TC/TM
 
 =cut
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 
 =head1 SYNOPSIS

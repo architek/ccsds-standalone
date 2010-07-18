@@ -9,7 +9,7 @@ Ccsds::TM::Printer - Simple printer for decoding CCSDS TM Source Packets
 
 =cut
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 use Switch;
 use Data::Dumper;
@@ -35,6 +35,10 @@ sub TMPrint {
   
   my $Pus_Data=$Pkt_Data->{'PusData'};
 
+  if (defined(my $Time_Packet=$Src_Packet->{'Packet Data Field'}->{'Time Packet'})) {
+    print "TM Time ", Dumper($Time_Packet);
+    return;
+  }
   print "TM PUS($Pus_Type,$Pus_SubType)\t";
   printf "OBT=%10.3f\t", $OBT;
   switch ( join(',',$Pus_Type,$Pus_SubType) ){

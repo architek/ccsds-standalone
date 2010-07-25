@@ -40,10 +40,10 @@ sub TCPrint {
     my $Pus_SecHeader=$Src_Packet->{'Packet Data Field'}->{'TCSourceSecondaryHeader'};
     my $Pus_Type=$Pus_SecHeader->{'Service Type'};
     my $Pus_SubType=$Pus_SecHeader->{'Service Subtype'};
-    print "TC PUS($Pus_Type,$Pus_SubType)\n";
+    print "TC PUS($Pus_Type,$Pus_SubType) Length: $Packet_Length \n";
   }
   else {
-    print "TC \nNo Secondary Header (CPD, HPC, ..)\n";
+    print "TC with no Secondary Header (CPD, HPC, ..) Length: $Packet_Length \n";
   }
 
 #Print datas, if any

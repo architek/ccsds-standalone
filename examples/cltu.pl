@@ -5,7 +5,7 @@ use warnings;
 use Getopt::Long;
 use Data::Dumper;
 use Ccsds::Utils qw(decode_cltu_data);
-use Ccsds::TC::Printer qw(CltuPrint $VERSION);
+use Ccsds::TC::Printer qw(TCPrint CltuPrint $VERSION);
 use Ccsds::TC::Frame qw($Cltu $TCFrame);
 use Ccsds::TC::SourcePacket qw($tcsourcepacket);
 
@@ -14,7 +14,6 @@ my $odumper  = 0;
 my $oshowver = 0;
 my $opts     = GetOptions(
     'debug'   => \$odebug,     # do we want debug
-#TODO TCPrint
     'dumper'  => \$odumper,    # do we want to use tmprint or internal dumper
     'version' => \$oshowver
 );
@@ -68,11 +67,20 @@ while (<STDIN>) {
 #Decode the complete CLTU, incl. CBH
     my $cltu = $Cltu->parse($pstring);
 
-#Print decoded cltu, do not print undecoded cltu
+#Print decoded cltu, but not the still undecoded part
     $cltu->{'Cltu Data'} = ();
-    print Dumper($cltu);
+    if ($odumper) {
+      print Dumper($cltu) 
+    } else {
+      my $mapid  = $cltu->{'Segment Header'}->{'MapId'};
+      my $bypass = $cltu->{'TC Frame Header'}->{'ByPass'};
+      my $Scid   = $cltu->{'TC Frame Header'}->{'SpaceCraftId'};
+      my $Vcid   = $cltu->{'TC Frame Header'}->{'Virtual Channel Id'};
+      my $FLength= $cltu->{'TC Frame Header'}->{'Frame Length'};
+      print "Decoded Frame and included Segment: MapId=$mapid, Bypass=$bypass, Scid=$Scid, Vcid=$Vcid, Frame Length=$FLength\n";
+    }
     
-#After this we now have CLTU *data* without CBH
+#After this we now have CLTU *data* , CBH removed
     my $cltu_data = decode_cltu_data( $buf, $cltu->{'TC Frame Header'}->{'Frame Length'} + 1 );
 
 
@@ -87,6 +95,7 @@ while (<STDIN>) {
 "Wrong segment, we received Sequence flag $seqf while we expect 0 or 2\n"
           unless ( $seqf == CONT or $seqf == LAST );
         next if ( $seqf == CONT );
+        $state=OUT;
     } elsif ( $state == OUT ) {
         die
 "Wrong segment, we received Sequence flag $seqf while we expect 1 or 3\n"
@@ -100,7 +109,13 @@ while (<STDIN>) {
     #This is a STANDalone segment or LAST segment, decode the overall TC packet
     my $pstring2 = pack( qq{H*}, qq{$segments_data} );
     my $packet = $tcsourcepacket->parse($pstring2);
-    print Dumper($packet);
+
+    if ($odumper) {
+      print Dumper($packet);
+    } else {
+      print " ";
+      TCPrint($packet);
+    }
     $segments_data = ();
 
 }

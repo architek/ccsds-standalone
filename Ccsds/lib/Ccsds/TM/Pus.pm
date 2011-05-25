@@ -64,7 +64,7 @@ our $pus_enabled_events = Struct('Enabled events',
   Array(sub { $_->ctx->{'NEid'} },UBInt16('Eids') )
 );
 
-#TODO Sub SAU: if PID == NSGU_A then return UBInt32 otherwise UBInt8
+#TODO Sub SAU
 our $pus_memory_dump = Struct('Memory Dump',
   UBInt16('Memory Id'),
   UBInt32('Start Address'),
@@ -98,6 +98,7 @@ our $pus_function_status = Struct('Function Status',
   )
 );
 
+#Example
 our $sw_error_log = Struct('SW Error Log',
   UBInt16('SErr_Count'),
   Array(sub { $_->ctx->{'SErr_Count'}}, 
@@ -121,7 +122,6 @@ our $pus_sliced = Struct('Sliced',
   Value('Length',sub { $_->ctx(3)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'}-3}),
   Switch('Data',sub { $_->ctx->{'Function Id'} },
    {
-    110   => $sgm_read,
     152   => $sw_error_log,
    },
   default => Array(sub{$_->ctx->{'Length'}},UBInt8('Params'))

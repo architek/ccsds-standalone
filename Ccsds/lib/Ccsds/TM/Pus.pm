@@ -14,7 +14,6 @@ our $VERSION = '1.7';
 use Data::ParseBinary;
 use Ccsds::Common;
 use Ccsds::TM::RM;
-use Ccsds::TM::SGM;
 use Ccsds::TC::SourcePacket;   
 
 our $pus_AckOk = Struct('AckOk',

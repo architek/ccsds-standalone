@@ -28,8 +28,6 @@ our $Pid = Enum(
       AOC         => 0x11,
       PF          => 0x12,
       PL          => 0x13,
-      NSGU_S      => 0x40,
-      NSGU_L      => 0x48,
       _default_   => $DefaultPass
 );
 

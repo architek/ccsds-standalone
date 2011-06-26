@@ -80,8 +80,9 @@ while (<STDIN>) {
       print "Decoded Frame and included Segment: MapId=$mapid, Bypass=$bypass, Scid=$Scid, Vcid=$Vcid, Frame Length=$FLength\n";
     }
     
-#After this we now have CLTU *data* , CBH removed
-    my $cltu_data = decode_cltu_data( $buf, $cltu->{'TC Frame Header'}->{'Frame Length'} + 1 );
+    $buf =~s/....//;  # Remove EB90h 
+    my $cltu_data = rs_deinterleaver( 7, $buf, $cltu->{'TC Frame Header'}->{'Frame Length'} + 1 ); #We use BCH Length 7
+#we now have CLTU *data* , BCH removed
 
 
 #State Machine for Segment handling

@@ -20,11 +20,11 @@ our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits
   BitStruct('SecHeadFirstField',
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
-    Nibble('Spare2')
+    Nibble('TC Ack Flags')
   ),
   UBInt8('Service Type'),
   UBInt8('Service Subtype'),
-  UBInt8('Destination Id'),
+  UBInt8('Source Id'),
 );
 
 our $TCPacketHeader = Struct('Packet Header',                         #

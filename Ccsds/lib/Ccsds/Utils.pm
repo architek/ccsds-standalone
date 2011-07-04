@@ -64,11 +64,11 @@ sub tm_verify_crc_bin {
 
 #Removes EB90, CBH 1 bit correction code, TAIL
 #Takes input as hex ascii representation of a CLTU (EB90,CBH..,TAIL)
-sub decode_cltu_data {
-    my $odata;
-    my $offset = 4;                 # Skip EB90
-    my $cbh_len= 7;
+sub rs_deinterleaver {
+    my $cbh_len= shift;
     ( my $idata, my $fl ) = @_;     # Ascii data , Included frame TOTAL length
+    my $odata;
+    my $offset = 0;
     while ( $fl > 0 ) {
         my $l = $cbh_len;
         $l = $fl if ( $fl < $cbh_len );
@@ -84,7 +84,7 @@ sub decode_cltu_data {
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc decode_cltu_data);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc rs_deinterleaver);
 
 =head1 AUTHOR
 

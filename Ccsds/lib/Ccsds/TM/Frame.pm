@@ -13,11 +13,11 @@ our $VERSION = '1.7';
 
 use Data::ParseBinary;
 
-my $TMFrameHeader= BitStruct('TM Frame Header', #6 bytes
+our $TMFrameHeader= BitStruct('TM Frame Header', #6 bytes
     BitField('Version Number Frame',2),         #16 bits
     BitField('SpaceCraftId',10),
     BitField('Virtual Channel Id',3),           
-    BitField('Operation Flag',1),
+    BitField('Operation Flag',1),                 
     UBInt8('Master Channel Frame Count'),       #1 byte
     UBInt8('Virtual Channel Frame Count'),      #1 byte
     BitField('Sec Header',1),                   #16 bits
@@ -27,9 +27,25 @@ my $TMFrameHeader= BitStruct('TM Frame Header', #6 bytes
     BitField('First Header Pointer',11), 
 );
 
+my $TMFrameSecondaryHeader = BitStruct('TM Frame Secondary Header',
+    BitField('Sec Header Version',2),
+    BitField('Sec Header Length',6),
+    Array(sub { $_->ctx->{'Sec Header Length'}-1 }, UBInt8('Data'))
+);
+
+our $TMFrame= Struct('TMFrame',
+    $TMFrameHeader,
+    If ( sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'}}, 
+	$TMFrameSecondaryHeader
+    ),
+    Array(1015,UBInt8('Data')),
+    ULInt32('CLCW'),   #TODO if Operation Flag is 1 - TODO Decode CLCW
+    #TODO: FEC MUST Be present if RS is not enabled. Otherwise optionnal
+);
+
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($TMFrameHeader);
+our @EXPORT = qw($TMFrameHeader $TMFrame);
 
 =head1 AUTHOR
 

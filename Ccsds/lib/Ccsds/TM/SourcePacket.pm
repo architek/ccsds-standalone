@@ -37,7 +37,7 @@ our $tmsourcepacket_header=
           BitField('Version Number',3),
           BitField('Type',1),
           Flag('DFH Flag'),
-          UBInt16('Apid'),
+          BitField('Apid',11),
         ),
         BitStruct('Packet Sequence Control',                      #16+16 bits
           BitField('Segmentation Flags',2),

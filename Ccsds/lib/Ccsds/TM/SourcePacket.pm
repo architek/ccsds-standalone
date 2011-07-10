@@ -17,7 +17,7 @@ use Ccsds::Common;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 10 bytes
+my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 12 bytes
   BitStruct('SecHeadFirstField',                                  #1 byte
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
@@ -26,7 +26,8 @@ my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 10 bytes
   UBInt8('Service Type'),                                         #1 byte
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
-  $Sat_Time                                                       #6 bytes
+  $Sat_Time,                                                      #7 bytes
+  UBInt8('Time Quality'),                                         #1 byte
 );
 
 #TODO refactor to use this from tmsourcepacket
@@ -43,7 +44,7 @@ our $tmsourcepacket_header=
           BitField('Segmentation Flags',2),
           BitField('Source Seq Count',14),
           UBInt16('Packet Length'),
-          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 10*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
+          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 12*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
         )
     );
 
@@ -60,13 +61,13 @@ our $tmsourcepacket = Struct('TM Source Packet',
           BitField('Segmentation Flags',2),
           BitField('Source Seq Count',14),
           UBInt16('Packet Length'),
-          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 10*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
+          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 12*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
         )
     ),
 
   Struct('Packet Data Field',
       If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
-          $TMSourceSecondaryHeader,                             ### 10 bytes TODO Can be of 3 different types
+          $TMSourceSecondaryHeader,                             ### 12 bytes TODO Can be of 3 different types
       ),
       Struct('Data Field',
         If ( sub { $_->ctx(2)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 

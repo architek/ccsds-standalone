@@ -38,7 +38,7 @@ our $TMFrame= Struct('TMFrame',
     If ( sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'}}, 
 	$TMFrameSecondaryHeader
     ),
-    Array(1015,UBInt8('Data')),
+    Array(1046,UBInt8('Data')),
     ULInt32('CLCW'),   #TODO if Operation Flag is 1 - TODO Decode CLCW
     #TODO: FEC MUST Be present if RS is not enabled. Otherwise optionnal
 );

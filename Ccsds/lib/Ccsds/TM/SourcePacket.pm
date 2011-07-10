@@ -29,7 +29,25 @@ my $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 10 bytes
   $Sat_Time                                                       #6 bytes
 );
 
+#TODO refactor to use this from tmsourcepacket
+#this is currently used for detecting non data packets: time, idle
+our $tmsourcepacket_header=
+  Struct('Packet Header',                                         ### 6 bytes
+        BitStruct('Packet Id',                                    #5+11 bits
+          BitField('Version Number',3),
+          BitField('Type',1),
+          Flag('DFH Flag'),
+          BitField('Apid',11),
+        ),
+        BitStruct('Packet Sequence Control',                      #16+16 bits
+          BitField('Segmentation Flags',2),
+          BitField('Source Seq Count',14),
+          UBInt16('Packet Length'),
+          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 10*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
+        )
+    );
 
+#TODO Split the header out to parse only header for example
 our $tmsourcepacket = Struct('TM Source Packet',
   Struct('Packet Header',                                         ### 6 bytes
         BitStruct('Packet Id',                                    #5+11 bits
@@ -47,10 +65,12 @@ our $tmsourcepacket = Struct('TM Source Packet',
     ),
 
   Struct('Packet Data Field',
-    If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
+      If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
+          $TMSourceSecondaryHeader,                             ### 10 bytes TODO Can be of 3 different types
+      ),
       Struct('Data Field',
-            $TMSourceSecondaryHeader,                             ### 10 bytes
-            Switch('PusData', sub {  join(',', $_->ctx->{TMSourceSecondaryHeader}->{'Service Type'},$_->ctx->{TMSourceSecondaryHeader}->{'Service Subtype'})},
+        If ( sub { $_->ctx(2)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
+            Switch('PusData', sub {  join(',', $_->ctx(1)->{TMSourceSecondaryHeader}->{'Service Type'},$_->ctx(1)->{TMSourceSecondaryHeader}->{'Service Subtype'})},
             {
                 '1,1'   => $pus_AckOk,
                 '1,7'   => $pus_AckOk,
@@ -90,19 +110,14 @@ our $tmsourcepacket = Struct('TM Source Packet',
                 '19,7'  => $pus_event_detection_list,
                 '128,3' => $pus_parameter_report
             },
-                default => $DefaultPass,
             ),
-      )
+        ),
+        If ( sub { !$_->ctx(2)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
+          Array(sub { ( $_->ctx(2)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} ) },UBInt8('Source Data')),
+        ),
+        ),
+        UBInt16('Packet Error Control'),     #TODO Can be optionnal
     ),
-    If ( sub { ! $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
-      Struct('Time Packet',
-        #No DFH
-            $Sat_Time,
-            UBInt8('Status'),
-      )
-    ),
-    UBInt16('Packet Error Control'),
-   )
 );
 
 our $scos_tmsourcepacket = Struct('Scos TM Source Packet',
@@ -112,7 +127,7 @@ our $scos_tmsourcepacket = Struct('Scos TM Source Packet',
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($tmsourcepacket $scos_tmsourcepacket);
+our @EXPORT = qw($tmsourcepacket $tmsourcepacket_header $scos_tmsourcepacket);
 
 =head1 SYNOPSIS
 

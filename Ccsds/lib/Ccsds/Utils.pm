@@ -21,6 +21,7 @@ sub calc_crc {
 }
 
 #Takes input as hex ascii representation
+#Returns 1 if OK, 0 otherwise
 sub verify_crc {
 
     ( my $crc_in, my $data ) = @_;
@@ -35,6 +36,7 @@ sub verify_crc {
 }
 
 #Takes input as hex ascii representation, no space
+#Returns 1 if OK, 0 otherwise
 sub tm_verify_crc {
 
     print 'Included Crc:' . substr( $_[0], -4 ) . "\n" if $::odebug;

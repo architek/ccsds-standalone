@@ -38,9 +38,9 @@ our $TMFrame= Struct('TMFrame',
     If ( sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'}}, 
 	$TMFrameSecondaryHeader
     ),
-    Array(1103,UBInt8('Data')),
+    Array(1105,UBInt8('Data')),
     UBInt32('CLCW'),   #TODO if Operation Flag is 1 - TODO Decode CLCW
-    UBInt16('FEC')
+    #UBInt16('FEC')
 );
 
 require Exporter;

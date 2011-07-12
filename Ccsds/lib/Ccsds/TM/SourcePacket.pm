@@ -27,7 +27,7 @@ our $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 12 bytes
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
   $Sat_Time,                                                      #7 bytes
-  UBInt8('Time Quality'),                                         #1 byte
+  UBInt8('Time Status'),                                          #1 byte
 );
 
 #TODO refactor to use this from tmsourcepacket
@@ -49,6 +49,7 @@ our $tmsourcepacket_header=
     );
 
 #TODO Split the header out to parse only header for example
+#TODO Time Packet
 our $tmsourcepacket = Struct('TM Source Packet',
   Struct('Packet Header',                                         ### 6 bytes
         BitStruct('Packet Id',                                    #5+11 bits

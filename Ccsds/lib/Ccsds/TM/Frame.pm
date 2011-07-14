@@ -9,7 +9,7 @@ Ccsds::TM::Frame - Decoding/Encoding of TM Frame
 
 =cut
 
-our $VERSION = '1.7';
+our $VERSION = '1.8';
 
 use Data::ParseBinary;
 

@@ -9,8 +9,6 @@ Ccsds::TM::SourcePacket - Decoding Ccsds TM SourcePackets!
 
 =cut
 
-our $VERSION = '1.7';
-
 use Data::ParseBinary;
 
 use Ccsds::Common;

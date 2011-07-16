@@ -5,11 +5,9 @@ use strict;
 
 =head1 NAME
 
-Ccsds::TM::RM - GAL Specific lib for decoding TTR RM Log
+Ccsds::TM::RM - CROME2 RM Log decoding
 
 =cut
-
-our $VERSION = '1.7';
 
 use Data::ParseBinary;
 

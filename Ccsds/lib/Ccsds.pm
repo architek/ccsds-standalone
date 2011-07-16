@@ -9,8 +9,11 @@ Ccsds - Module used to decode or encode CCSDS TC/TM
 
 =cut
 
-our $VERSION = '1.7';
+our $VERSION = '1.8';
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT = qw($VERSION);
 
 =head1 SYNOPSIS
 

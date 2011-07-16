@@ -9,8 +9,6 @@ Ccsds::TC::Printer - Simple printer for CCSDS TC Source Packets and CLTUs
 
 =cut
 
-our $VERSION = '1.7';
-
 use Switch;
 use Data::Dumper;
 
@@ -52,7 +50,7 @@ sub TCPrint {
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(TCPrint CltuPrint $VERSION);
+our @EXPORT = qw(TCPrint CltuPrint);
 
 =head1 SYNOPSIS
 

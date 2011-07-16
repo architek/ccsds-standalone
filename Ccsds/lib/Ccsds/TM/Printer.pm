@@ -9,8 +9,6 @@ Ccsds::TM::Printer - Simple printer for decoding CCSDS TM Source Packets
 
 =cut
 
-our $VERSION = '1.7';
-
 use Switch;
 use Data::Dumper;
 
@@ -256,7 +254,7 @@ sub TMPrint {
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw(TMPrint $VERSION);
+our @EXPORT = qw(TMPrint);
 
 =head1 SYNOPSIS
 

@@ -9,8 +9,6 @@ Ccsds::TM::Frame - Decoding/Encoding of TM Frame
 
 =cut
 
-our $VERSION = '1.7';
-
 use Data::ParseBinary;
 
 our $TMFrameHeader= BitStruct('TM Frame Header', #6 bytes

@@ -9,8 +9,6 @@ Ccsds::TC::Frame - Decoding/Encoding of TC Frame
 
 =cut
 
-our $VERSION = '1.7';
-
 use Data::ParseBinary;
 
 my $TCFrameHeader= BitStruct('TC Frame Header',

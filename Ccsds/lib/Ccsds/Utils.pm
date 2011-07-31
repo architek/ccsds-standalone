@@ -9,8 +9,6 @@ Ccsds::Utils - Set of utilities to work with CCSDS Standards
 
 =cut
 
-our $VERSION = '1.7';
-
 use Digest::CRC qw(crcccitt);
 
 #Takes input as binary!

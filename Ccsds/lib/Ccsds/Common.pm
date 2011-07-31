@@ -11,11 +11,26 @@ Ccsds::Common - Common Structures to CCSDS Standards
 
 use Data::ParseBinary;
 
-#CDS
+#CUC
 our $Sat_Time = Struct( 'Sat_Time',
-    UBInt16('DoE'),
-    UBInt32('Mil'),
-    UBInt16('Mic'),
+    UBInt8('C1'),
+    UBInt8('C2'),
+    UBInt8('C3'),
+    UBInt8('C4'),
+    UBInt8('F1'),
+    UBInt8('F2'),
+    UBInt8('F3'),
+    Value(              
+        'OBT', sub { 
+        $_->ctx->{'C1'}*256**3  +
+        $_->ctx->{'C2'}*256**2  +
+        $_->ctx->{'C3'}*256**1  +
+        $_->ctx->{'C4'}         +
+        $_->ctx->{'F1'}*256**-1 +
+        $_->ctx->{'F2'}*256**-2 +
+        $_->ctx->{'F3'}*256**-3 
+        }
+    )
 );
 
 our $Pid = Enum(

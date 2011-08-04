@@ -46,7 +46,7 @@ our $tmsourcepacket_header=
         )
     );
 
-#TODO Split the header out to parse only header for example
+#TODO Time Packet
 our $tmsourcepacket = Struct('TM Source Packet',
   Struct('Packet Header',                                         ### 6 bytes
         BitStruct('Packet Id',                                    #5+11 bits

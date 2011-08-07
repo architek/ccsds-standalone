@@ -4,10 +4,11 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
+use Ccsds qw($VERSION);
 use Ccsds::Utils qw(verify_crc tm_verify_crc);
 use Ccsds::TM::SourcePacket
   qw($tmsourcepacket $scos_tmsourcepacket);
-use Ccsds::TM::Printer qw(TMPrint $VERSION);
+use Ccsds::TM::Printer qw(TMPrint);
 
 #Fields to convert in hex if dumper is used
 my @tohex = ('Packet Error Control');
@@ -22,7 +23,7 @@ my $opts     = GetOptions(
     'version' => \$oshowver
 );
 
-die "Version $VERSION\n" if $oshowver;
+die "Using lib version $VERSION\n" if $oshowver;
 $Data::ParseBinary::print_debug_info = 1 if $odebug;
 
 $/ = '';                       # paragraph reads

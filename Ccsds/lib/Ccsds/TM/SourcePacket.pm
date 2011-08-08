@@ -26,11 +26,11 @@ our $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 12 bytes
   UBInt8('Destination Id'),                                       #1 byte
   $Sat_Time,                                                      #7 bytes
   UBInt8('Time Quality'),                                         #1 byte
+  Value('Length',12),
 );
 
-#TODO refactor to use this from tmsourcepacket
-#this is currently used for detecting non data packets: time, idle
-our $tmsourcepacket_header=
+#is also exported in case for detecting non data packets: time, idle
+our $TMSourcePacketHeader=
   Struct('Packet Header',                                         ### 6 bytes
         BitStruct('Packet Id',                                    #5+11 bits
           BitField('Version Number',3),
@@ -42,33 +42,27 @@ our $tmsourcepacket_header=
           BitField('Segmentation Flags',2),
           BitField('Source Seq Count',14),
           UBInt16('Packet Length'),
-          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 12*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
         )
-    );
+);
+
+sub source_data_length {
+    my $sdl;
+    $sdl= $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Packet Length'} +1 -2 ;
+    if ( $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} ) {
+        $sdl -= $_->ctx->{'TMSourceSecondaryHeader'}->{'Length'} ;
+    }
+    return $sdl;
+}
 
 #TODO Time Packet
-our $tmsourcepacket = Struct('TM Source Packet',
-  Struct('Packet Header',                                         ### 6 bytes
-        BitStruct('Packet Id',                                    #5+11 bits
-          BitField('Version Number',3),
-          BitField('Type',1),
-          Flag('DFH Flag'),
-          $Apid
-        ),
-        BitStruct('Packet Sequence Control',                      #16+16 bits
-          BitField('Segmentation Flags',2),
-          BitField('Source Seq Count',14),
-          UBInt16('Packet Length'),
-          Value('Source Data Length', sub { $_->ctx->{'Packet Length'} +1 -2 - 12*$_->ctx(1)->{'Packet Id'}->{'DFH Flag'} } ),
-        )
-    ),
+our $TMSourcePacket = Struct('TM Source Packet',
 
+  $TMSourcePacketHeader,
   Struct('Packet Data Field',
-      If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
-          $TMSourceSecondaryHeader,                             ### 12 bytes TODO Can be of 3 different types
+      If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
+          $TMSourceSecondaryHeader,
       ),
-      Struct('Data Field',
-#        If ( sub { $_->ctx(2)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
+# Uncomment to decode PUS
 #            Switch('PusData', sub {  join(',', $_->ctx(1)->{TMSourceSecondaryHeader}->{'Service Type'},$_->ctx(1)->{TMSourceSecondaryHeader}->{'Service Subtype'})},
 #            {
 #                '1,1'   => $pus_AckOk,
@@ -109,24 +103,20 @@ our $tmsourcepacket = Struct('TM Source Packet',
 #                '19,7'  => $pus_event_detection_list,
 #                '128,3' => $pus_parameter_report
 #            },
-#            ),
-#        ),
-#        If ( sub { !$_->ctx(2)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} }, 
-          Array(sub { ( $_->ctx(2)->{'Packet Header'}->{'Packet Sequence Control'}->{'Source Data Length'} ) },UBInt8('Source Data')),
-#        ),
-        ),
-        UBInt16('Packet Error Control'),     #TODO Can be optionnal
-    ),
+      
+      Array(\&source_data_length,UBInt8('Source Data')),
+      UBInt16('Packet Error Control'),          #Can be optionnal
+  ),
 );
 
-our $scos_tmsourcepacket = Struct('Scos TM Source Packet',
+our $ScosTMSourcePacket = Struct('Scos TM Source Packet',
   Array(20,UBInt8('Scos Header')),
-  $tmsourcepacket
+  $TMSourcePacket
 );
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($tmsourcepacket $tmsourcepacket_header $TMSourceSecondaryHeader $scos_tmsourcepacket);
+our @EXPORT = qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader $ScosTMSourcePacket);
 
 =head1 SYNOPSIS
 

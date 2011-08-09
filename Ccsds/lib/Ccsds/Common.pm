@@ -12,7 +12,8 @@ Ccsds::Common - Common Structures to CCSDS Standards
 use Data::ParseBinary;
 
 #CUC
-our $Sat_Time = Struct( 'Sat_Time',
+our $Sat_Time = defined($::Sat_Time) ? $::Sat_Time : 
+  Struct( 'Sat_Time',
     UBInt8('C1'),
     UBInt8('C2'),
     UBInt8('C3'),

@@ -15,7 +15,8 @@ use Ccsds::Common;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-our $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',   ### 12 bytes
+our $TMSourceSecondaryHeader = defined($::TMSourceSecondaryHeader) ? $::TMSourceSecondaryHeader :
+ Struct('TMSourceSecondaryHeader',   ### 12 bytes
   BitStruct('SecHeadFirstField',                                  #1 byte
     BitField('Spare1',1),
     BitField('PUS Version Number',3),

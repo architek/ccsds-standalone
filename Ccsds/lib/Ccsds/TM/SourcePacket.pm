@@ -12,6 +12,7 @@ Ccsds::TM::SourcePacket - Decoding Ccsds TM SourcePackets!
 use Data::ParseBinary;
 
 use Ccsds::Common;
+use Ccsds::StdTime;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
@@ -25,7 +26,7 @@ our $TMSourceSecondaryHeader = defined($::TMSourceSecondaryHeader) ? $::TMSource
   UBInt8('Service Type'),                                         #1 byte
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
-  $Sat_Time,                                                      #7 bytes
+  defined($::Sat_Time) ? $::Sat_Time : CUC(4,3),                  #7 bytes
   UBInt8('Time Quality'),                                         #1 byte
   Value('Length',12),
 );

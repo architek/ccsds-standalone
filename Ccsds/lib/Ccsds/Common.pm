@@ -10,29 +10,9 @@ Ccsds::Common - Common Structures to CCSDS Standards
 =cut
 
 use Data::ParseBinary;
+use Ccsds::StdTime;
 
-#CUC
-our $Sat_Time = defined($::Sat_Time) ? $::Sat_Time : 
-  Struct( 'Sat_Time',
-    UBInt8('C1'),
-    UBInt8('C2'),
-    UBInt8('C3'),
-    UBInt8('C4'),
-    UBInt8('F1'),
-    UBInt8('F2'),
-    UBInt8('F3'),
-    Value(              
-        'OBT', sub { 
-        $_->ctx->{'C1'}*256**3  +
-        $_->ctx->{'C2'}*256**2  +
-        $_->ctx->{'C3'}*256**1  +
-        $_->ctx->{'C4'}         +
-        $_->ctx->{'F1'}*256**-1 +
-        $_->ctx->{'F2'}*256**-2 +
-        $_->ctx->{'F3'}*256**-3 
-        }
-    )
-);
+our $Sat_Time = defined($::Sat_Time) ? $::Sat_Time : CUC(3,3);
 
 our $Pid = Enum(
     BitField( 'PID', 7 ),
@@ -48,7 +28,7 @@ our $Apid = BitStruct('Apid',
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw($Sat_Time $Pid $Apid);
+our @EXPORT = qw($Pid $Apid $Sat_Time);
 
 =head1 AUTHOR
 

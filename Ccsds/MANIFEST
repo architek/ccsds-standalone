@@ -4,6 +4,7 @@ Makefile.PL
 README
 lib/Ccsds.pm
 lib/Ccsds/Common.pm
+lib/Ccsds/StdTime.pm
 lib/Ccsds/Utils.pm
 lib/Ccsds/TM/Printer.pm
 lib/Ccsds/TM/Frame.pm

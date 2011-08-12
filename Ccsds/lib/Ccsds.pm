@@ -17,14 +17,15 @@ our @EXPORT = qw($VERSION);
 
 =head1 SYNOPSIS
 
-This library allows decoding as well as encoding of CCSDS stream defined in the PSS/ECSS standards 
+This library allows decoding and encoding of CCSDS stream defined in the PSS/ECSS standards 
 
-Here is an example of using the library:
-
-    use Ccsds;
+    use Ccsds::Utils qw(tm_verify_crc);
+    use Ccsds::TM::Frame qw($TMFrame);
+    use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader) ;
+    use Data::Dumper;
 
     #Decode binary input as CCSDS TM Source Packet
-    my $tm         = $tmsourcepacket->parse($input);
+    my $tm         = $TMSourcePacket->parse($input);
 
     my $header     = $tm->{'Packet Header'};
     my $dataf      = $tm->{'Packet Data Field'};
@@ -43,7 +44,7 @@ Here is an example of using the library:
     }
 
     #Rebuild Telemetry
-    $data = $tmsourcepacket->build($decoded);
+    $data = $TMSourcePacket->build($decoded);
     patch_crc(\$data);
     
     ...
@@ -54,12 +55,7 @@ Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-data-parsebinary-network-ccsds at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-ParseBinary-Network-Ccsds>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
+Please report any bugs or feature requests to C<teebeenator at gmail.com>
 
 =head1 SUPPORT
 

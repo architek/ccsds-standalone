@@ -371,7 +371,7 @@ our $pus_OBCP_dump = Struct('OBCP dump',
   Array(sub { $_->ctx->{'Procedure Steps'}},Struct('Steps',
      UBInt8('Procedure Step'),
      UBInt16('Delay'),
-     $tcsourcepacket
+     $TCSourcePacket
   ))
 );
 

@@ -59,7 +59,7 @@ Quick summary of what the module does.
     use Ccsds::TC::Printer;
 
     CltuPrint($cltu_ascii);
-    my $decoded = Ccsds::TC::$tcsourcepacket->parse($pstring);
+    my $decoded = Ccsds::TC::$TCSourcePacket->parse($pstring);
     Ccsds::TC::TCPrint($decoded);
 
     ...

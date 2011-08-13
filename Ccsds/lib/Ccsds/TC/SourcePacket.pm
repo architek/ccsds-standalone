@@ -40,7 +40,7 @@ our $TCPacketHeader = Struct('Packet Header',                         #
   )
 );
 
-our $tcsourcepacket= Struct('TC Source Packet',
+our $TCSourcePacket= Struct('TC Source Packet',
   $TCPacketHeader,
   Struct('Packet Data Field',
     If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'}}, 
@@ -53,7 +53,7 @@ our $tcsourcepacket= Struct('TC Source Packet',
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($tcsourcepacket $TCPacketHeader $TCSourceSecondaryHeader);
+our @EXPORT = qw($TCSourcePacket $TCPacketHeader $TCSourceSecondaryHeader);
 
 =head1 AUTHOR
 

@@ -262,7 +262,7 @@ Quick summary of what the module does.
 
     use Ccsds::TM::Printer;
 
-    my $decoded = Ccsds::TM::$tmsourcepacket->parse($pstring);
+    my $decoded = Ccsds::TM::$TMSourcePacket->parse($pstring);
     Ccsds::TM::TMPrint($decoded);
 
     ...

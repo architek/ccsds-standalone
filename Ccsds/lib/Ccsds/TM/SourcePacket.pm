@@ -132,7 +132,7 @@ Quick summary of what the module does.
     $pstring = pack( qq{H*}, qq{$input} );
     print "Warning: The CRC is incorrect, decoding anyway\n" unless ( tm_verify_crc $buf) ;
 
-    my $foo = Ccsds::TM::SourcePacket::$tmsourcepacket->parse($pstring);
+    my $foo = Ccsds::TM::SourcePacket::$TMSourcePacket->parse($pstring);
     ...
 
 =head1 AUTHOR

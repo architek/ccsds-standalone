@@ -81,6 +81,30 @@ sub rs_deinterleaver {
     return $odata;
 }
 
+#hex dumper for long data arrays
+sub hdump {
+    my $offset = 0;
+    my(@array,$format,$res);
+    foreach my $data (unpack("a64"x(length($_[0])/64)."a*",$_[0])) {
+        my($len)=length($data);
+        if ($len == 64) {
+            @array = unpack('N12', $data);
+            $format="0x%04x (%05d)   %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x   %s\n";
+        } else {
+            @array = unpack('C*', $data);
+            $_ = sprintf "%2.2x", $_ for @array;
+            push(@array, '  ') while $len++ < 64;
+            $format="0x%04x (%05d)" .
+               "   %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s\n";
+        } 
+        #$data =~ tr/\0-\37\177-\377/./; #Uncomment to show ascii
+        $data ="";
+        $res .= sprintf($format,$offset,$offset,@array,$data);
+        $offset += 64;
+    }
+    return $res;
+}
+
 #detect hash by its keys and return known order or alphabetical
 sub get_orders {
     my ($hash)=@_;
@@ -110,7 +134,7 @@ sub get_orders {
         my %a=map { $_ => 1 } @$_;
         return $_ if (%a ~~ %$hash);
     }
-    print "Sorting alphabetical keys:", join (',', keys %$hash ) , "\n";
+    print "Sorting alphabetical keys:", join (',', keys %$hash ) , ".\n";
     return [ (sort keys %$hash) ];
 }
 #Fields to convert in hex if dumper is used
@@ -118,11 +142,12 @@ my @tohex = ('Packet Error Control');
 
 sub CcsdsDump {
     my ($decoded)=@_;
+    my $srcdata;
     
-    #Change "Source Data" to hex string
-    if (exists $decoded->{'Source Data'}) {
-        my $srcdata = unpack( 'H*' , pack( 'C*' , @{ $decoded->{'Source Data'} } ) );
-        $decoded->{'Source Data'} = $srcdata;
+    #Change "Source Data" array to binary scalar. It is converted to ascii for Data::Dumper.
+    if ( exists ($decoded->{'Packet Data Field'}) && exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) ) {
+        $srcdata = unpack('H*',pack( 'C*' , @{ $decoded->{'Packet Data Field'}->{'Source Data'} } ) );
+        $decoded->{'Packet Data Field'}->{'Source Data'} = $srcdata;
     }
 
     #Do a basic ordering for debug output
@@ -138,6 +163,9 @@ sub CcsdsDump {
         my $hv = sprintf( "%#x", $1 ); 
         $dumper =~ s/$1/$hv/; 
     }
+
+    #Convert Source Data Scalar to hexdumper
+    $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump($1)/e;
 
     return $dumper;
 }

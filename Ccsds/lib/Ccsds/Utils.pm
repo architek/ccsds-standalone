@@ -10,6 +10,7 @@ Ccsds::Utils - Set of utilities to work with CCSDS Standards
 =cut
 
 use Digest::CRC qw(crcccitt);
+use Data::Dumper; 
 
 #Takes input as binary!
 sub calc_crc {
@@ -80,11 +81,62 @@ sub rs_deinterleaver {
     return $odata;
 }
 
+#detect hash by its keys and return known order or alphabetical
+sub get_orders {
+    my ($hash)=@_;
+    my $orders= [ 
+#TM Packet
+['Packet Header','Packet Data Field'],      #Packet
+ [ "Packet Id", "Packet Sequence Control" ],   # PacketHeader
+  [ "Version Number","Type","DFH Flag","Apid" ], #PacketId
+  [ "Segmentation Flags","Source Seq Count","Packet Length" ], # Packet Sequence Control
+ ['TMSourceSecondaryHeader','Source Data','Packet Error Control'], # Packet Data Field
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time', 'Time Quality'],  # GIO
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype',                   'Sat_Time', 'Sync Status' ],  # S3
+   [ 'Spare1','PUS Version Number','Spare2' ],    # SecHead First Field
 
+#TM Frame
+['TM Frame Header','TM Frame Secondary Header',	'Data', 'CLCW'], # Frame
+ ['Version Number Frame', 'SpaceCraftId', 'Virtual Channel Id', 'Operation Flag','Master Channel Frame Count','Virtual Channel Frame Count', 
+ 'Sec Header', 'Sync Flag','Packet Order Flag','Segment Length Id','First Header Pointer' ],   #FrameHeader
+ ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
+
+ ['DoE','Mil','Mic'],           #S3 time
+ ['CUC Coarse','Fine Time'],    #GIO time
+];
+    for (@$orders) {
+        my %a=map { $_ => 1 } @$_;
+        return $_ if (%a ~~ %$hash);
+    }
+    print "Sorting alphabetical keys:", join (',', keys %$hash ) , "\n";
+    return [ (sort keys %$hash) ];
+}
+#Fields to convert in hex if dumper is used
+my @tohex = ('Packet Error Control');
+
+sub CcsdsDump {
+    my ($decoded)=@_;
+    
+    #Do a basic ordering for debug output
+    $Data::Dumper::Sortkeys=\&get_orders;
+
+    #Dump
+    my $dumper = Dumper($decoded);
+
+    #Do hex representation
+    foreach (@tohex) { 
+        $dumper =~ m/$_.*=>\s([[:alnum:]]*),?/; 
+        next unless defined $1;
+        my $hv = sprintf( "%#x", $1 ); 
+        $dumper =~ s/$1/$hv/; 
+    }
+
+    return $dumper;
+}
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc rs_deinterleaver);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc rs_deinterleaver CcsdsDump);
 
 =head1 AUTHOR
 

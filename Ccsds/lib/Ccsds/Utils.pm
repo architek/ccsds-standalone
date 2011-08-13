@@ -119,6 +119,12 @@ my @tohex = ('Packet Error Control');
 sub CcsdsDump {
     my ($decoded)=@_;
     
+    #Change "Source Data" to hex string
+    if (exists $decoded->{'Source Data'}) {
+        my $srcdata = unpack( 'H*' , pack( 'C*' , @{ $decoded->{'Source Data'} } ) );
+        $decoded->{'Source Data'} = $srcdata;
+    }
+
     #Do a basic ordering for debug output
     $Data::Dumper::Sortkeys=\&get_orders;
 

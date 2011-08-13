@@ -103,8 +103,8 @@ sub get_orders {
  ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
 
  ['DoE','Mil','Mic'],           #SW time
- ['CUC Coarse','Fine Time'],    #GIO time
- ['Seconds','SubSeconds'],      #CUC
+ ['CUC Coarse','Fine Time'],    #CUC
+ ['OBT','Seconds','SubSeconds'],      #GIO Legacy
 ];
     for (@$orders) {
         my %a=map { $_ => 1 } @$_;

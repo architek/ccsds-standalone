@@ -91,8 +91,9 @@ sub get_orders {
   [ "Version Number","Type","DFH Flag","Apid" ], #PacketId
   [ "Segmentation Flags","Source Seq Count","Packet Length" ], # Packet Sequence Control
  ['TMSourceSecondaryHeader','Source Data','Packet Error Control'], # Packet Data Field
-  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time', 'Time Quality'],  # GIO
-  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype',                   'Sat_Time', 'Sync Status' ],  # S3
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time', 'Time Quality'],  # S3
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time' ],  # GIO
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype',                   'Sat_Time', 'Sync Status' ],  # SW
    [ 'Spare1','PUS Version Number','Spare2' ],    # SecHead First Field
 
 #TM Frame
@@ -101,8 +102,9 @@ sub get_orders {
  'Sec Header', 'Sync Flag','Packet Order Flag','Segment Length Id','First Header Pointer' ],   #FrameHeader
  ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
 
- ['DoE','Mil','Mic'],           #S3 time
+ ['DoE','Mil','Mic'],           #SW time
  ['CUC Coarse','Fine Time'],    #GIO time
+ ['Seconds','SubSeconds'],      #CUC
 ];
     for (@$orders) {
         my %a=map { $_ => 1 } @$_;

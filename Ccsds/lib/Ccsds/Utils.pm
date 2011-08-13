@@ -131,8 +131,8 @@ sub get_orders {
  ['OBT','Seconds','SubSeconds'],      #GIO Legacy
 ];
     for (@$orders) {
-        my %a=map { $_ => 1 } @$_;
-        return $_ if (%a ~~ %$hash);
+        my %a=map { $_ => 1 } @$_;    # generate a hash from the array reference
+        return $_ if (%a ~~ %$hash);  # are keys identical?
     }
     print "Sorting alphabetical keys:", join (',', keys %$hash ) , ".\n";
     return [ (sort keys %$hash) ];
@@ -165,7 +165,7 @@ sub CcsdsDump {
     }
 
     #Convert Source Data Scalar to hexdumper
-    $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump($1)/e;
+    $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump(pack('H*',$1))/e;
 
     return $dumper;
 }

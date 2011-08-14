@@ -16,7 +16,8 @@ use Ccsds::StdTime;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-our $TMSourceSecondaryHeader = defined($Ccsds::Custo::TMSourceSecondaryHeader) ? $Ccsds::Custo::TMSourceSecondaryHeader :
+our $TMSourceSecondaryHeader = 
+defined($Ccsds::Custo::TMSourceSecondaryHeader) ?  $Ccsds::Custo::TMSourceSecondaryHeader :
  Struct('TMSourceSecondaryHeader',   ### 12 bytes
   Value('Length',12),
   BitStruct('SecHeadFirstField',                                  #1 byte
@@ -27,7 +28,8 @@ our $TMSourceSecondaryHeader = defined($Ccsds::Custo::TMSourceSecondaryHeader) ?
   UBInt8('Service Type'),                                         #1 byte
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
-  defined($Ccsds::Custo::Sat_Time) ? $Ccsds::Custo::Sat_Time : CUC(4,3),                  #7 bytes
+  defined($Ccsds::Custo::Sat_Time) ? $Ccsds::Custo::Sat_Time : 
+                                     CUC(4,3),                    #7 bytes
   UBInt8('Time Quality'),                                         #1 byte
 );
 

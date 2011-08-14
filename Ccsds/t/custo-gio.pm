@@ -1,9 +1,11 @@
 #Sample customization for GIO
 #############################
+package Ccsds::Custo;
 use Ccsds::StdTime;
 use Data::ParseBinary;
 
 our $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',  ### 10 bytes
+  Value('Length',10),
   BitStruct('SecHeadFirstField',                                  #1 byte
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
@@ -13,7 +15,6 @@ our $TMSourceSecondaryHeader = Struct('TMSourceSecondaryHeader',  ### 10 bytes
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
   CUC(4,2),                                                       #6 bytes
-  Value('Length',10),
 );
 
 1;

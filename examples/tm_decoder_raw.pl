@@ -4,8 +4,7 @@ use warnings;
 
 use Data::Dumper;
 use Ccsds::Utils qw(verify_crc tm_verify_crc);
-use Ccsds::TM::SourcePacket
-  qw($tmsourcepacket_parser $scos_tmsourcepacket_parser);
+use Ccsds::TM::SourcePacket qw($TMSourcePacket);
 use Ccsds::TM::Printer;
 
 my $mdebug = 0;
@@ -23,16 +22,8 @@ while (1) {
 
     print "Buffer :$buf\n";
 
-    #first lets try on real tmsourcepacket
-    if ( tm_verify_crc $buf) {
-        $decoded = $tmsourcepacket_parser->parse($raw);
-    }
-    else {
-
-        #then on broken tmsourcepacket
-        print "Crc is not correct\n";
-        $decoded = $tmsourcepacket_parser->parse($raw);
-    }
+    $decoded = $TMSourcePacket->parse($raw);
+    
     print '/' . '-' x 100 . "\n";
     print Dumper($decoded);
 

@@ -5,10 +5,7 @@ use Data::Dumper;
 use FindBin ();
 use lib "$FindBin::Bin";
 
-#Reference data to check against
-#This also sets a default customization
-my $datas="t/ref1.pm";
-plan skip_all => "You need reference datas in $datas" unless ( -f $datas ) ;
+#Reference data to check against - This also sets a default customization
 use ref1;
 
 use Ccsds;
@@ -18,13 +15,14 @@ use Fcntl ':mode';
 my ( $tmp , $b_tmp);
 $b_tmp = pack( 'H*' , $ref1::tmp );
 
-#Packets
-eval { $tmp = $TMSourcePacket->parse( $b_tmp ); };
-ok ( %$tmp ~~ %$ref1::r_tmp );
-
 #Header
 eval { $tmp = $TMSourcePacketHeader->parse( $b_tmp ); };
-ok ( %$tmp ~~ %$ref1::r_tmph );
+is_deeply (   $tmp , $ref1::r_tmph , "Packet Header decoding");
+
+#Packet
+eval { $tmp = $TMSourcePacket->parse( $b_tmp ); };
+print Dumper($tmp);
+is_deeply (   $tmp , $ref1::r_tmp  , "Packet decoding" );
 
 done_testing($2);
 diag( "Testing Ccsds Decoding $Ccsds::VERSION, Perl $], $^X" );

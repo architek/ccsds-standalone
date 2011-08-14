@@ -15,6 +15,9 @@ lib/Ccsds/TC/Frame.pm
 lib/Ccsds/TC/SourcePacket.pm
 lib/Ccsds/TC/Printer.pm
 t/00-load.t
-t/manifest.t
-t/pod-coverage.t
+t/01-crc.t
+t/02-decode.t
+t/boilerplate.t
+t/custo-gio.pm
 t/pod.t
+t/ref1.pm

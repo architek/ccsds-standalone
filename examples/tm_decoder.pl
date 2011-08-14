@@ -7,7 +7,7 @@ use Data::Dumper;
 use Ccsds qw($VERSION);
 use Ccsds::Utils qw(verify_crc tm_verify_crc);
 use Ccsds::TM::SourcePacket
-  qw($tmsourcepacket $scos_tmsourcepacket);
+  qw($TMSourcePacket $ScosTMSourcePacket);
 use Ccsds::TM::Printer qw(TMPrint);
 
 #Fields to convert in hex if dumper is used
@@ -62,18 +62,18 @@ while (<STDIN>) {
 
     #first lets try on real tmsourcepacket
     if ( tm_verify_crc $buf) {
-        $decoded = $tmsourcepacket->parse($pstring);
+        $decoded = $TMSourcePacket->parse($pstring);
     }
     elsif ( tm_verify_crc substr $buf, 40 ) {
 
         #now lets try on scosheader+tmsourcepacket
-        $decoded = $scos_tmsourcepacket->parse($pstring);
+        $decoded = $ScosTmSourcePacket->parse($pstring);
     }
     else {
 
         #Decode anyway
         print "Warning, Crc seems wrong!\n";
-        $decoded = $tmsourcepacket->parse($pstring);
+        $decoded = $TMSourcePacket->parse($pstring);
     }
 
     if ($odumper) {

@@ -127,8 +127,11 @@ sub get_orders {
  'Sec Header', 'Sync Flag','Packet Order Flag','Segment Length Id','First Header Pointer' ],   #FrameHeader
  ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
 
- ['OBT','DoE','Mil','Mic'],           #SW time
- ['CUC Coarse','Fine Time'],    #CUC
+ ['OBT','DoE','Mil','Mic'],           #CDS time
+ ['OBT','DoE','Mil','Pic'],           #CDS time
+ ['OBT','bDoE','Mil','Mic'],          #CDS time
+ ['OBT','bDoE','Mil','Pic'],          #CDS time
+ ['OBT','CUC Coarse','CUC Fine'],     #CUC
  ['OBT','Seconds','SubSeconds'],      #GIO Legacy
 ];
     for (@$orders) {

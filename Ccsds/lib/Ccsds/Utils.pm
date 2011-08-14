@@ -88,20 +88,21 @@ sub hdump {
     foreach my $data (unpack("a64"x(length($_[0])/64)."a*",$_[0])) {
         my($len)=length($data);
         if ($len == 64) {
-            @array = unpack('N12', $data);
-            $format="0x%04x (%05d)   %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x   %s\n";
+            @array = unpack('N16', $data);
+            $format="0x%04x (%05d)   " . "%08x " x 16 . " %s\n";
         } else {
             @array = unpack('C*', $data);
             $_ = sprintf "%2.2x", $_ for @array;
             push(@array, '  ') while $len++ < 64;
             $format="0x%04x (%05d)" .
-               "   %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s%s%s%s %s\n";
+               "   " . "%s%s%s%s " x 16 . " %s\n";
         } 
         #$data =~ tr/\0-\37\177-\377/./; #Uncomment to show ascii
         $data ="";
         $res .= sprintf($format,$offset,$offset,@array,$data);
         $offset += 64;
     }
+    chomp $res;
     return $res;
 }
 
@@ -126,7 +127,7 @@ sub get_orders {
  'Sec Header', 'Sync Flag','Packet Order Flag','Segment Length Id','First Header Pointer' ],   #FrameHeader
  ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
 
- ['DoE','Mil','Mic'],           #SW time
+ ['OBT','DoE','Mil','Mic'],           #SW time
  ['CUC Coarse','Fine Time'],    #CUC
  ['OBT','Seconds','SubSeconds'],      #GIO Legacy
 ];

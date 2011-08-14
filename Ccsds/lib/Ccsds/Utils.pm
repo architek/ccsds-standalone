@@ -67,8 +67,7 @@ sub tm_verify_crc_bin {
 #Removes EB90, CBH 1 bit correction code, TAIL
 #Takes input as hex ascii representation of a CLTU (EB90,CBH..,TAIL)
 sub rs_deinterleaver {
-    my $cbh_len= shift;
-    ( my $idata, my $fl ) = @_;     # Ascii data , Included frame TOTAL length
+    my ( $cbh_len, $idata, $fl ) = @_;     # Ascii data , Included frame TOTAL length
     my $odata;
     my $offset = 0;
     while ( $fl > 0 ) {

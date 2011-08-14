@@ -4,12 +4,13 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
+use Ccsds qw/VERSION/;
 use Ccsds::Utils qw(tm_verify_crc);
 
-use Ccsds::TM::SourcePacket qw($tmsourcepacket);
-use Ccsds::TC::SourcePacket qw($tcsourcepacket);
+use Ccsds::TM::SourcePacket qw($TMSourcePacket);
+use Ccsds::TC::SourcePacket qw($TCSourcePacket);
 
-use Ccsds::TM::Printer qw(TMPrint $VERSION);
+use Ccsds::TM::Printer qw(TMPrint );
 use Ccsds::TC::Printer qw(TCPrint );
 
 my @tohex = ('Packet Error Control');
@@ -50,7 +51,7 @@ while (<STDIN>) {
 
     #Decode potential tm
     if ( tm_verify_crc $_) {
-        eval q( $decoded = $tmsourcepacket->parse($pstring) );
+        eval q( $decoded = $TMSourcePacket->parse($pstring) );
         if ($@) {
           $nblocks_error++;
           print "TM ERROR : Undecoded TM? (But Crc is correct)\n$@\n";
@@ -60,7 +61,7 @@ while (<STDIN>) {
     }
     else {
         #Decode tc
-        eval q( $decoded = $tcsourcepacket->parse($pstring) );
+        eval q( $decoded = $TCSourcePacket->parse($pstring) );
         if ($@) {
           $nblocks_error++;
           print "TC ERROR : Undecoded TC?\n$@\n";

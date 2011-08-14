@@ -62,13 +62,10 @@ sub CDS {
 								    my $s=int($_->ctx->{'Mil'}/1000); 
 								    my $ms=$_->ctx->{'Mil'}-$s*1000;
 								    my $obt = DateTime->new(year=>$epoch)->add(days=>$day_num)->add(seconds=>$s);
-								    if ($milli_size==0) { 
-								        return sprintf "%s.%03d", $obt, $ms;
-								    }elsif ($milli_size==16) { 
-								        return sprintf "%s.%03d%03d", $obt, $ms, $_->ctx->{'Mic'};
-								    } elsif ($milli_size==32) {
-								        return sprintf "%s.%03d%06d", $obt, $ms, $_->ctx->{'Pic'};
-								    }
+                                    return 
+                                        ($milli_size==0 ) ? sprintf ("%s.%03d", $obt, $ms) :
+                                        ($milli_size==16) ? sprintf ("%s.%03d%03d", $obt, $ms, $_->ctx->{'Mic'}) :
+								        sprintf ("%s.%03d%06d", $obt, $ms, $_->ctx->{'Pic'} );
 								}
                             )
                     );

@@ -16,8 +16,9 @@ use Ccsds::StdTime;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-our $TMSourceSecondaryHeader = defined($::TMSourceSecondaryHeader) ? $::TMSourceSecondaryHeader :
+our $TMSourceSecondaryHeader = defined($Ccsds::Custo::TMSourceSecondaryHeader) ? $Ccsds::Custo::TMSourceSecondaryHeader :
  Struct('TMSourceSecondaryHeader',   ### 12 bytes
+  Value('Length',12),
   BitStruct('SecHeadFirstField',                                  #1 byte
     BitField('Spare1',1),
     BitField('PUS Version Number',3),
@@ -26,9 +27,8 @@ our $TMSourceSecondaryHeader = defined($::TMSourceSecondaryHeader) ? $::TMSource
   UBInt8('Service Type'),                                         #1 byte
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
-  defined($::Sat_Time) ? $::Sat_Time : CUC(4,3),                  #7 bytes
+  defined($Ccsds::Custo::Sat_Time) ? $Ccsds::Custo::Sat_Time : CUC(4,3),                  #7 bytes
   UBInt8('Time Quality'),                                         #1 byte
-  Value('Length',12),
 );
 
 #is also exported in case for detecting non data packets: time, idle

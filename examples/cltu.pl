@@ -7,7 +7,7 @@ use Data::Dumper;
 use Ccsds::Utils qw(decode_cltu_data);
 use Ccsds::TC::Printer qw(TCPrint CltuPrint $VERSION);
 use Ccsds::TC::Frame qw($Cltu $TCFrame);
-use Ccsds::TC::SourcePacket qw($tcsourcepacket);
+use Ccsds::TC::SourcePacket qw($TCSourcePacket);
 
 our $odebug   = 0;
 my $odumper  = 0;
@@ -109,7 +109,7 @@ while (<STDIN>) {
 
     #This is a STANDalone segment or LAST segment, decode the overall TC packet
     my $pstring2 = pack( qq{H*}, qq{$segments_data} );
-    my $packet = $tcsourcepacket->parse($pstring2);
+    my $packet = $TCSourcePacket->parse($pstring2);
 
     if ($odumper) {
       print Dumper($packet);

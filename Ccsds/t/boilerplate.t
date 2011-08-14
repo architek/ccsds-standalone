@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 14;
 
 sub not_in_file_ok {
     my ($filename, %regex) = @_;
@@ -30,8 +30,8 @@ sub not_in_file_ok {
 sub module_boilerplate_ok {
     my ($module) = @_;
     not_in_file_ok($module =>
-        'the great new $MODULENAME'   => qr/ - The great new /,
-        'boilerplate description'     => qr/Quick summary of what the module/,
+        'the great new $MODULENAME'   => qr/ - Great new Ccsds encoder&decoder lib/,
+        'boilerplate description'     => qr/This module allows to decode and encode most of ccsds structures/,
         'stub function definition'    => qr/function[12]/,
     );
 }
@@ -48,15 +48,18 @@ TODO: {
     "placeholder date/time"       => qr(Date/time)
   );
 
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/TM/SourcePacket.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/TM/Printer.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/Common.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/TM/Pus.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/TM/RM.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/TM/SGM.pm');
-  module_boilerplate_ok('lib/Data/ParseBinary/Network/Ccsds/Utils.pm');
-
+  module_boilerplate_ok('lib/Ccsds.pm');
+  module_boilerplate_ok('lib/Ccsds/Common.pm');
+  module_boilerplate_ok('lib/Ccsds/Utils.pm');
+  module_boilerplate_ok('lib/Ccsds/StdTime.pm');
+  module_boilerplate_ok('lib/Ccsds/TM/Frame.pm');
+  module_boilerplate_ok('lib/Ccsds/TM/SourcePacket.pm');
+  module_boilerplate_ok('lib/Ccsds/TM/Printer.pm');
+  module_boilerplate_ok('lib/Ccsds/TM/Pus.pm');
+  module_boilerplate_ok('lib/Ccsds/TM/RM.pm');
+  module_boilerplate_ok('lib/Ccsds/TC/Frame.pm');
+  module_boilerplate_ok('lib/Ccsds/TC/SourcePacket.pm');
+  module_boilerplate_ok('lib/Ccsds/TC/Printer.pm');
 
 }
 

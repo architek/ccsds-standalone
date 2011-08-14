@@ -53,11 +53,11 @@ sub CDS {
 								    if ($day_size == 16) {
 								        $day_num=$_->ctx->{'DoE'};
 								    } else {
-                                    #24 bits
+                                    #Calculate out of 24 bits
 								        my $k=256**2;
 								        map { $day_num+=$k*$_; $k/=256; } @{ $_->ctx->{'bDoE'} };
 								    }
-							        
+
                                     #calculate subsecond details
 								    my $s=int($_->ctx->{'Mil'}/1000); 
 								    my $ms=$_->ctx->{'Mil'}-$s*1000;

@@ -12,7 +12,7 @@ Ccsds::Utils - Set of utilities to work with CCSDS Standards
 use Digest::CRC qw(crcccitt);
 use Data::Dumper; 
 
-#Takes input as binary!
+#Takes input as binary, gives out calculated CRC CCITT
 sub calc_crc {
 
     return crcccitt(shift);
@@ -28,9 +28,10 @@ sub verify_crc {
     my $sdata = pack( "H*", $data );
     my $crc = calc_crc $sdata;
 
+    print 'Given Crc:' . sprintf( '%x', $crc_in ) . "\n" if $::odebug;
     print 'Calculated Crc:' . sprintf( '%x', $crc ) . "\n" if $::odebug;
 
-    return lc $crc eq lc $crc_in;
+    return $crc eq $crc_in;
 
 }
 
@@ -86,7 +87,7 @@ sub hdump {
     my $offset = 0;
     my(@array,$format,$res);
     foreach my $data (unpack("a64"x(length($_[0])/64)."a*",$_[0])) {
-        my($len)=length($data);
+        my $len = length($data);
         if ($len == 64) {
             @array = unpack('N16', $data);
             $format="0x%04x (%05d)   " . "%08x " x 16 . " %s\n";
@@ -97,8 +98,8 @@ sub hdump {
             $format="0x%04x (%05d)" .
                "   " . "%s%s%s%s " x 16 . " %s\n";
         } 
-        #$data =~ tr/\0-\37\177-\377/./; #Uncomment to show ascii
         $data ="";
+        #$data =~ tr/\0-\37\177-\377/./; #Uncomment to show ascii
         $res .= sprintf($format,$offset,$offset,@array,$data);
         $offset += 64;
     }
@@ -136,7 +137,7 @@ sub get_orders {
 ];
     for (@$orders) {
         my %a=map { $_ => 1 } @$_;    # generate a hash from the array reference
-        return $_ if (%a ~~ %$hash);  # are keys identical?
+        return $_ if (%a ~~ %$hash);  # return array if keys match the hash
     }
     print "Sorting alphabetical keys:", join (',', keys %$hash ) , ".\n";
     return [ (sort keys %$hash) ];
@@ -176,7 +177,7 @@ sub CcsdsDump {
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin calc_crc patch_crc rs_deinterleaver CcsdsDump);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver CcsdsDump);
 
 =head1 AUTHOR
 

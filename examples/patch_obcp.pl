@@ -5,8 +5,8 @@ use warnings;
 use Data::Dumper;
 use Ccsds::Utils qw(verify_crc tm_verify_crc patch_crc);
 use Ccsds::TM::SourcePacket
-  qw($tmsourcepacket $scos_tmsourcepacket);
-use Ccsds::TC::SourcePacket qw($tcsourcepacket);
+  qw($TMSourcePacket $ScosTMSourcePacket);
+use Ccsds::TC::SourcePacket qw($TCSourcePacket);
 
 $/ = '';                       # paragraph reads
 my $nblocks = 0;
@@ -40,20 +40,20 @@ while (<STDIN>) {
   DECODE:
     $pstring = pack( qq{H*}, qq{$buf} );
 
-    #first lets try on real tmsourcepacket
+    #first lets try on real TMSourcePacket
     if ( tm_verify_crc $buf) {
-        $decoded = $tmsourcepacket->parse($pstring);
+        $decoded = $TMSourcePacket->parse($pstring);
     }
     elsif ( tm_verify_crc substr $buf, 40 ) {
 
-        #now lets try on scosheader+tmsourcepacket
-        $decoded = $scos_tmsourcepacket->parse($pstring);
+        #now lets try on scosheader+TMSourcePacket
+        $decoded = $ScosTMSourcePacket->parse($pstring);
     }
     else {
 
         #Decode anyway
         print "Warning, Crc seems wrong!\n";
-        $decoded = $tmsourcepacket->parse($pstring);
+        $decoded = $TMSourcePacket->parse($pstring);
     }
 
     #Get important fields
@@ -98,7 +98,7 @@ while (<STDIN>) {
                 #Modify TC included
                 $Tc_Data->[3]--;           # Patch HLC Number
                                            #Rebuild TC
-                my $mTC = $tcsourcepacket->build($Tc);
+                my $mTC = $TCSourcePacket->build($Tc);
                 patch_crc(\$mTC);
 
                 print " New TC:", unpack( 'H*', $mTC ), "\n";

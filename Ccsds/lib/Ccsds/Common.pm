@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-Ccsds::Common - Common Structures to CCSDS Standards
+Ccsds::Common - Common Structures to TC and TM
 
 =cut
 

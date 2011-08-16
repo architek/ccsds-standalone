@@ -17,7 +17,8 @@ our @EXPORT = qw($VERSION);
 
 =head1 SYNOPSIS
 
-This library allows decoding and encoding of CCSDS stream defined in the PSS/ECSS standards 
+This library allows decoding and encoding of CCSDS stream defined in the PSS/ECSS standards.
+The current module Ccsds.pm only exports $VERSION which can be retried to know the version of the library. 
 
     use Ccsds::Utils qw(tm_verify_crc);
     use Ccsds::TM::Frame qw($TMFrame);

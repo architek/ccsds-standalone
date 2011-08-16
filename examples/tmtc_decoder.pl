@@ -2,6 +2,10 @@
 use strict;
 use warnings;
 
+#Simple script that decodes TMTC packets.
+#FIXME: Don't depend on CRC verification to detect if a TM or a TC... both are CRC CCITT...
+#       Rather use the header and use Type. 0 for TM, 1 for TC.
+
 use Getopt::Long;
 use Data::Dumper;
 use Ccsds qw/VERSION/;

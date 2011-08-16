@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 
+#Take as input a binary log of contiguous packets and decodes included TM Source Packets.
+
 use Data::Dumper;
 use Ccsds::Utils qw(verify_crc tm_verify_crc);
 use Ccsds::TM::SourcePacket qw($TMSourcePacket);

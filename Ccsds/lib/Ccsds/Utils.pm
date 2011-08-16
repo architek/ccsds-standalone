@@ -12,15 +12,10 @@ Ccsds::Utils - Set of utilities to work with CCSDS Standards
 use Digest::CRC qw(crcccitt);
 use Data::Dumper; 
 
-#Takes input as binary, gives out calculated CRC CCITT
 sub calc_crc {
-
     return crcccitt(shift);
-
 }
 
-#Takes input as hex ascii representation
-#Returns 1 if OK, 0 otherwise
 sub verify_crc {
 
     ( my $crc_in, my $data ) = @_;
@@ -35,17 +30,17 @@ sub verify_crc {
 
 }
 
-#Takes input as hex ascii representation, no space
-#Returns 1 if OK, 0 otherwise
 sub tm_verify_crc {
-
-    print 'Included Crc:' . substr( $_[0], -4 ) . "\n" if $::odebug;
 
     #split string into data,crc
     ( my $data, my $crc_in ) =
       ( substr( $_[0], 0, -4 ), hex substr( $_[0], -4 ) );
 
     return verify_crc( $crc_in, $data );
+}
+
+sub tm_verify_crc_bin {
+    return tm_verify_crc unpack( 'A*', shift );
 }
 
 #Patch 16bit-crc included in the binary stream
@@ -57,15 +52,8 @@ sub patch_crc {
 
 }
 
-#Takes input as binary!
-sub tm_verify_crc_bin {
-
-    return tm_verify_crc unpack( 'A*', shift );
-
-}
-
-#Removes EB90, CBH 1 bit correction code, TAIL
 #Takes input as hex ascii representation of a CLTU (EB90,CBH..,TAIL)
+#Removes EB90, CBH 1 bit correction code, TAIL
 sub rs_deinterleaver {
     my ( $cbh_len, $idata, $fl ) = @_;     # Ascii data , Included frame TOTAL length
     my $odata;
@@ -81,7 +69,8 @@ sub rs_deinterleaver {
     return $odata;
 }
 
-#hex dumper for long data arrays
+#Hex dumper for long data arrays
+#Each line of data is 64 bytes.
 sub hdump {
     my $offset = 0;
     my(@array,$format,$res);
@@ -98,7 +87,8 @@ sub hdump {
                "   " . "%s%s%s%s " x 16 . " %s\n";
         } 
         $data ="";
-        #$data =~ tr/\0-\37\177-\377/./; #Uncomment to show ascii
+	  #Uncomment next line to show ascii
+        #$data =~ tr/\0-\37\177-\377/./; 
         $res .= sprintf($format,$offset,$offset,@array,$data);
         $offset += 64;
     }
@@ -106,7 +96,9 @@ sub hdump {
     return $res;
 }
 
-#detect hash by its keys and return known order or alphabetical
+#Detect hash by its keys and return known order and if not, alphabetical
+#This is used as key ordering for hashes when printing Ccsds structures using Data::Dumper
+#TODO TCs
 sub get_orders {
     my ($hash)=@_;
     my $orders= [ 
@@ -127,40 +119,41 @@ sub get_orders {
  'Sec Header', 'Sync Flag','Packet Order Flag','Segment Length Id','First Header Pointer' ],   #FrameHeader
  ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
 
- ['OBT','DoE','Mil','Mic'],           #CDS time
- ['OBT','DoE','Mil','Pic'],           #CDS time
- ['OBT','bDoE','Mil','Mic'],          #CDS time
- ['OBT','bDoE','Mil','Pic'],          #CDS time
+ ['OBT','DoE','Mil','Mic'],           #CDS time with Microseconds
+ ['OBT','DoE','Mil','Pic'],           #CDS time with Picoseconds
+ ['OBT','bDoE','Mil','Mic'],          #CDS time with Microseconds and day of Epoch on 24bits
+ ['OBT','bDoE','Mil','Pic'],          #CDS time with Picoseconds and day of Epoch on 24bits
  ['OBT','CUC Coarse','CUC Fine'],     #CUC
- ['OBT','Seconds','SubSeconds'],      #GIO Legacy
+ ['OBT','Seconds','SubSeconds'],      #Equivalent of CUC
 ];
     for (@$orders) {
         my %a=map { $_ => 1 } @$_;    # generate a hash from the array reference
-        return $_ if (%a ~~ %$hash);  # return array if keys match the hash
+        return $_ if (%a ~~ %$hash);  # return array if keys match the given hash
     }
-    print "Sorting alphabetical keys:", join (',', keys %$hash ) , ".\n";
+    warn "Sorting alphabetical keys:", join (',', keys %$hash ) , ".\n";
     return [ (sort keys %$hash) ];
 }
-#Fields to convert in hex if dumper is used
-my @tohex = ('Packet Error Control');
 
+#Debug dumper to print out Ccsds structures. It uses get_orders() to print keys in order
+#TODO TCs
 sub CcsdsDump {
     my ($decoded)=@_;
     my $srcdata;
     
-    #Change "Source Data" array to binary scalar. It is converted to ascii for Data::Dumper.
-    if ( exists ($decoded->{'Packet Data Field'}) && exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) ) {
-        $srcdata = unpack('H*',pack( 'C*' , @{ $decoded->{'Packet Data Field'}->{'Source Data'} } ) );
-        $decoded->{'Packet Data Field'}->{'Source Data'} = $srcdata;
-    }
+    #Fields to convert in hex in dumper output
+    my @tohex = ('Packet Error Control');
+    
+    #Dumper printout of source data is not usable.
+    #Overwrite "Source Data" array by its corresponding scalar. It is converted to ascii for Data::Dumper
+    $decoded->{'Packet Data Field'}->{'Source Data'} = 
+       unpack('H*',pack( 'C*' , @{ $decoded->{'Packet Data Field'}->{'Source Data'} } ) )
+		if ( exists ($decoded->{'Packet Data Field'}) && exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) ) ;
 
-    #Do a basic ordering for debug output
+    #Dump using a basic keys ordering
     $Data::Dumper::Sortkeys=\&get_orders;
-
-    #Dump
     my $dumper = Dumper($decoded);
 
-    #Do hex representation
+    #Change some fields to their hex representation
     foreach (@tohex) { 
         $dumper =~ m/$_.*=>\s([[:alnum:]]*),?/; 
         next unless defined $1;
@@ -178,6 +171,34 @@ require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver CcsdsDump);
 
+=head1 SYNOPSIS
+
+This module includes simple helper for working with Ccsds standards:
+    - CRC Handling : CRC calculation, inline verification and inline patching
+    - RS de-interleaver
+    - HexDumper to print nicely long datas in hex representation
+    - Debugger output for any structures that prints the hash given in argument, keys being sorted.
+
+=head1 EXPORTS
+
+=head2 calc_crc()
+
+Takes input as binary, gives out calculated CRC CCITT
+
+=head2 verify_crc()
+
+Takes input as hex ascii representation
+Returns 1 if OK, 0 otherwise
+
+=head2 tm_verify_crc()
+
+Takes input as hex ascii representation, no space
+Returns 1 if OK, 0 otherwise
+
+=head2 tm_verify_crc_bin()
+
+Takes input as binary
+
 =head1 AUTHOR
 
 Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>
@@ -187,9 +208,6 @@ Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>
 Please report any bugs or feature requests to C<bug-data-parsebinary-network-ccsds at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-ParseBinary-Network-Ccsds>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
-
 
 =head1 SUPPORT
 

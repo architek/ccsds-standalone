@@ -14,17 +14,12 @@ use Ccsds::TM::Frame qw($TMFrame);
 use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader) ;
 use Try::Tiny;
 
-my $glob_pkt_len;  #shared so that frame decoder knows about packet len FIXME
-
-#Input:   Frame data field binary stream 
-#Outputs: 0 if a valid packet (wrt to length and datas) was found
-#         1 if no packet was found
-#         glob_pkt_len <- size of last decoded packet
-#Crc Check: if not idle and crc was incorrect, display error message
-#
+#Given a data field binary stream, tries to decode packet.
+#If a packet is found, return its length or 0 if no valid/complete packet (wrt to length and datas)
+#Crc Check: if crc of non idle packet is incorrect, display error message
 sub try_decode_pkt {
     my ($data,$config) = @_ ;
-    my ($is_idle,$apid,$tmpacket,$tmpacketh,$ko);
+    my ($pkt_len,$is_idle,$apid,$tmpacket,$tmpacketh,$ko);
     $ko = 0;
     
     try { 
@@ -33,52 +28,47 @@ sub try_decode_pkt {
         print CcsdsDump( $tmpacketh ) if $config->{debug};
         $apid = $tmpacketh->{'Packet Id'}->{'Apid'};
         $is_idle = $apid == 0b11111111111? 1:0; 
-        $glob_pkt_len = $tmpacketh->{'Packet Sequence Control'} ->{'Packet Length'} + 1 + 6;
+        $pkt_len = $tmpacketh->{'Packet Sequence Control'} ->{'Packet Length'} + 1 + 6;
 
         $tmpacket = $TMSourcePacket->parse( $data );
         if ( $config->{debug} >= 2 ) {
-#            $tmpacket->{'Packet Data Field'}->{'Data Field'}->{'Source Data'} = undef unless $config->{print_source_data};
             print CcsdsDump( $tmpacket ) ;
         }
     } catch { 
         print "Undecoded packet\n" if $config->{debug} >= 3;
         $ko = 1;
     };
-    return 1 if $ko;
+    return 0 if $ko;
+
     print "Decoded packet\n" if $config->{debug} >= 3;
     #Execute coderefs
     $_->($tmpacket) for @{ $config->{coderefs_packet} };
     #We got a complete packet, verify CRC
-    if ( ! $is_idle  && ! tm_verify_crc( unpack 'H*',substr ( $data, 0, $glob_pkt_len ) ) ) { 
+    if ( ! $is_idle  && ! tm_verify_crc( unpack 'H*',substr ( $data, 0, $pkt_len ) ) ) { 
         warn "CRC of packet does not match\n" ; 
         print unpack('H*', $data) , "\n" if $config->{debug} >= 3; 
     }
-    return 0;
+    return $pkt_len;
 }
 
-#Return number of frames read or -1 on incomplete read
 sub read_frames {
     my ($filename,$config)=@_; 
 
     my $frame_nr = 0;
     my $vc;
+    my $pkt_len;
     my @packet_vcid = ("")x8;                               # VC 1..7
 
     #Remove buffering - This slows down a lot the process but allows to correlate errors to normal output
-    $| = 0;
     $| = 1 if  $config->{debug} >= 3;
-
-#Verbose debug, to be done in caller app
-#    $Data::ParseBinary::print_debug_info = 1 if $config->{debug} >=4 ;
 
     open my $fin, "<", $filename or die "can not open $filename"; 
     binmode $fin;
 
-	FRAME_DECODE:
+FRAME_DECODE:
 	while(! eof $fin) {
 	    my $raw;
 	    
-	    #Read record
 	    # Read a record
 	    if ( read( $fin, $raw, $config->{record_len}) != $config->{record_len} ) {
             warn "Fatal: Not a full frame record of " . $config->{record_len} . " bytes\n" ;
@@ -96,7 +86,7 @@ sub read_frames {
 	    $raw = substr $raw,0,-4;
 	
 	    if ( $tmframe->{'TM Frame Header'}->{'Sync Flag'} ne '0' ) {
-	        warn "First Header Pointer undefined!\n";
+	        warn "First Header Pointer undefined for frame $frame_nr!\n";
 	        next;
 	    }
 	
@@ -105,7 +95,7 @@ sub read_frames {
 	    my $sec            = $tmframe_header->{'Sec Header'};
 	    $vc                = $tmframe_header->{'Virtual Channel Id'};
 	    if ( $fhp == 0b11111111110 ) {
-	        print "OID Transfer Frame\n" if $config->{debug}>=2;
+	        print "Frame $frame_nr is an OID Transfer Frame\n" if $config->{debug}>=2;
 	        next;
 	    }
 	    print CcsdsDump($tmframe_header) if $config->{debug};
@@ -132,7 +122,7 @@ sub read_frames {
 	            print "We have pending data and current frame has a data header\n" if $config->{debug} >= 3;
 	            my $raw_packet=$packet_vcid[$vc] . substr $raw,0,$fhp ;
 	            print "After appending all packets slice, we have a packet of length ", length $raw_packet  , "\n" if $config->{debug} >= 3;
-	            if ( try_decode_pkt ( $raw_packet , $config) ) {
+	            if ( ! try_decode_pkt ( $raw_packet , $config) ) {
 	                warn "Corrupted packet - using FHP to resync\n"; 
 	                if ( $config->{debug} >= 3 ) { 
 	                    print "old data were:",unpack('H*', $packet_vcid[$vc]) , "\n"; 
@@ -145,7 +135,7 @@ sub read_frames {
 	    $raw = substr $raw, $fhp;
 	    $packet_vcid[$vc] = "";
 	    do { 
-	        if ( try_decode_pkt ( $raw , $config) ) { 
+	        if ( ($pkt_len = try_decode_pkt ( $raw , $config)) == 0 ) { 
 		        #We got an incomplete packet, not yet the full packet.. store it. rem: try catch error is in $_
 		        $packet_vcid[$vc] = $raw;
 		        print "cut data:",unpack('H*', $packet_vcid[$vc]) , 
@@ -153,17 +143,18 @@ sub read_frames {
 		        next FRAME_DECODE;
 		    }
 		    #go forward in the frame to the next packet
-		    print "Removing " , unpack('H*',substr $raw,0,$glob_pkt_len ) , "\n" if $config->{debug} >= 3;
-		    $raw = substr $raw, $glob_pkt_len;
+		    print "Removing " , unpack('H*',substr $raw,0,$pkt_len ) , "\n" if $config->{debug} >= 3;
+		    $raw = substr $raw, $pkt_len;
 		    print "Remains  " , unpack('H*',$raw), "\n" if $config->{debug} >= 3;
 	    } while length $raw;
 	}
 	#End of file, try to decode last packet that has split on the previous frame(s) and until the last byte of this frame
 	if ( length $packet_vcid[$vc] ) {
-	    if ( try_decode_pkt ( $packet_vcid[$vc] , $config ) ) {
+	    if ( ! try_decode_pkt ( $packet_vcid[$vc] , $config ) ) {
 	        warn "Last packet corrupt and can't resync as there is no more frame\n";
 	    }
 	}
+    close $fin;
     return $frame_nr;
 }
 
@@ -171,6 +162,60 @@ sub read_frames {
 require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(read_frames);
+
+=head1 SYNOPSIS
+
+This module allows to read a binary file containing blocks. Each block contains one TM Frame.
+Frames are decoded and so are included packets. First Header Pointer is used to find packets, detect incoherency and resynchronise if needed.
+
+The module expects a filename and a configuration describing:
+    - Format of the blocks and frames: size of blocks, offset in the block where the frame begins and size of frame.
+    - Internal debug level. For a value of 0, nothing will be printed, only warnings on STDERR.
+    - Code references for frames: After each decoded frame, a list of subs can be called
+    - Code references for packets: After each decoded packet, a list of subs can be called
+
+ sub frame_print_header {
+  my ($frame) = @_;
+  print "New frame:\n";
+  CcsdsDump($frame);
+ }
+
+ sub packet_print_header {
+  my ($packet) = @_;
+  print "New packet:\n";
+  CcsdsDump($frame);
+ }
+
+ #Define format of file. Note: Frame Length is redundant with info in the frame.
+
+ my $config={ 
+    record_len => 1115,     # Size of each records
+    offset_data => 0,       # Offset of the frame in this record
+    frame_len => 1115,      # Frame length, without Sync and without Reed Solomon Encoding Tail and FEC if any
+    debug => 1,             # 0:quiet , 1:headers , 2: full PDU , 3:Debug , 4:DataParseBinary Debug
+    print_frames => 1,      # For debug mode 1 and 2
+    print_packets => 1,
+    coderefs_frame =>  [ \&frame_print_header ],
+    coderefs_packet => [ \&packet_print_header ],
+ };
+
+ my $nf;
+
+ #Call the loop which will go through the complete file
+ $nf = read_frames($ARGV[0], $config);
+
+ print "Read $nf frames\n";
+
+
+A full example is given in the script frame2packet.pl
+
+=head1 EXPORTS
+
+=head2 read_frames()
+
+ Given a file name of X blocks containing frames, return number of frames read from the file or -1 on incomplete read.
+ After each decoded frame,  call a list of plugin passed in $config.
+ After each decoded packet, call a list of plugin passed in $config.
 
 =head1 AUTHOR
 
@@ -181,8 +226,6 @@ Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>
 Please report any bugs or feature requests to C<bug-data-parsebinary-network-ccsds at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-ParseBinary-Network-Ccsds>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
 
 
 =head1 SUPPORT
@@ -205,4 +248,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1;    # End of Ccsds::Utils
+1;    # End of Ccsds::TM::File

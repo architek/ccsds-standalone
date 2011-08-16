@@ -33,7 +33,7 @@ defined($Ccsds::Custo::TMSourceSecondaryHeader) ?  $Ccsds::Custo::TMSourceSecond
   UBInt8('Time Quality'),                                         #1 byte
 );
 
-#is also exported in case for detecting non data packets: time, idle
+#Exported in case for detecting non data packets: time, idle
 our $TMSourcePacketHeader=
   Struct('Packet Header',                                         ### 6 bytes
         BitStruct('Packet Id',                                    #5+11 bits

@@ -11,7 +11,7 @@ Ccsds::TC::Frame - Decoding/Encoding of TC Frame
 
 use Data::ParseBinary;
 
-my $TCFrameHeader= BitStruct('TC Frame Header',
+our $TCFrameHeader= BitStruct('TC Frame Header',
     BitField('Version Number Frame',2),         #16 bits
     BitField('ByPass',1),
     BitField('Control Command Flag',1),
@@ -28,11 +28,12 @@ our $TCFrame= Struct('TCFrame',
     UBInt16('Frame Error Control'),
 );
 
-my $TCSegmentHeader = BitStruct('Segment Header',
+our $TCSegmentHeader = BitStruct('Segment Header',
       BitField('Sequence Flags',2),
       BitField('MapId',6),
 );
 
+#TODO add customization: CBH depth and TCFrame Header length (is this customizable?)
 our $Cltu= Struct('Cltu',
     Magic("\xEB\x90"),
     $TCFrameHeader,
@@ -47,7 +48,21 @@ our $Cltu= Struct('Cltu',
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($TCFrame $Cltu);
+our @EXPORT = qw($TCFrameHeader $TCFrame $TCSegmentHeader $Cltu);
+
+=head1 SYNOPSIS
+
+This part allows to work with TC Frames, Segments and CLTUs. One can decode these structures or encode TCs to binary
+It can then be sent to an equipement understanding CCSDS.
+
+CltuPrint of Ccsds::TC::Print allows to display the data part nicely  (showing CBH code in between datas)
+
+A simple de-interleaver is provided in Ccsds::Utils to allow to remove all error correction codes. 
+It does not do error detection and correction!
+ 
+For TC Source to CLTU encoding, one needs to provide the encoded data, after going through a CBH interleaver
+
+TODO Typically, a Data::ParseBinary Adapter would need to be created to allow transparent TC Source to TC Cltu encoding and decoding.
 
 =head1 AUTHOR
 

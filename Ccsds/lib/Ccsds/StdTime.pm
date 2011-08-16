@@ -12,8 +12,6 @@ Ccsds::StdTime - Time code formats of CCSDS Standards
 use Data::ParseBinary;
 use DateTime;
 
-#The decoding to textual time is handle in Value OBT
-#This could be replaced by a special adpater to allow building from textual OBT
 sub dayCDS {
     my ($day_size)=@_;
     return $day_size==16 ? 
@@ -34,8 +32,6 @@ my $p_Field= BitStruct('P-Field',
     BitField('Detail Bits',4),
 );
 
-
-#TODO Finish case $milli_size=0 (no 3rd field)
 sub CDS {
     my ($day_size,$milli_size,$epoch)=@_;
     # default CCSDS Epoch: 1/1/1958
@@ -103,17 +99,24 @@ our @EXPORT = qw(CDS CUC $p_Field);
 
     use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
     $TMSourcePacket->decode($data);
+    ...
+
+    my $obt=$Sat_Time->decode("\x12\x23\x34\x45\x67\x89");
+    print "Corresponding OBT is ", $obt->{OBT} , "\n";
+    
 
 =head1 DESCRIPTION
 
-In the Recommendation, four Levels of time code formats can be defined based on the four degrees of interpretability of the code.
+ In the Recommendation, four Levels of time code formats can be defined based on the four degrees of interpretability of the code.
 
-This library allows to decode CUC and CDS formats.
-Currently, PField and self-identified OBT type is not auto-detected, it must be provided by the user if needed
+ This library allows to decode CUC and CDS formats.
+ Currently, PField and self-identified OBT type is not auto-detected, it must be provided by the user if needed
+ The decoding to textual time is handle in Value OBT
+ This could be replaced by a Data::ParseBinary Adapter to allow Textual->Binary encoding
 
-=head1 Standard structures
+=head1 STRUCTURES
 
-=head3 CUC
+=head2 CUC
 
 1 to 4 octets of Coarse time, 0 to 3 of Fine time
 This allows 136 years and 60ns granularity
@@ -127,7 +130,7 @@ This allows 136 years and 60ns granularity
     # or CUC 56 bits
     our $Sat_Time = CUC(4,3);
 
-=head3 CDS
+=head2 CDS
 
 16 or 24 bits for DAY, 32 bits for MS of the day, submilliseconds on 0,16 or 32 bits
 This code is UTC based and leap second correction has to be made (with perl libraries)
@@ -141,10 +144,30 @@ This code is UTC based and leap second correction has to be made (with perl libr
 
     # CDS with DoE on 16 bits and submilli on 16 bits, epoch set to 1/1/2000
     our $Sat_Time = CDS(16,16,2000);
-    my $cds = $decoded->{'Sat_Time'};
-    use DateTime;
-    print "OBT: " . $cds->{'OBT'};
 
+=head1 EXPORTS
+
+=head2 CUC
+
+Given a Coarse and a Fine precision (in bytes) 
+
+Returns a CUC Structure of 3 elements: Coarse, Fine and OBT being the calculated value
+
+The formulae to calcuate this value is the recommended one:
+
+OBT(c,f)= C1*256**(c-1)+C2*256**(c-2)..+Cc*256**0 + F1*256**-1 + F1*256**-2 .. + Ff*256**-f
+
+=head2 CDS
+
+Given a day precision (in bits: 16 or 24 bits. who needs 2**24 ie 45 centuries?) and a sub-millisecond precision (0,16,32 bits) and a year of Epoch (meaning exact epoch is 1st January of this year 0:00 UTC)
+
+Returns a CDS Structure of 4 elements: day from epoch, milliseconds of the day, submillisecond and OBT being the calculated value
+
+To calculate offset to epoch, DateTime is used (which takes care of leap second). 
+
+The subsecond part is simply appended (with 24 bits, no easier solution).
+
+TODO Finish case $milli_size=0 (no 3rd field)
 
 =head1 AUTHOR
 

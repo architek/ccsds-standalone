@@ -2,6 +2,10 @@
 use strict;
 use warnings;
 
+#This script is an example of decoding CLTU to TC packets
+#It checks coherency of Sequence Flags.
+#TODO: integrate this in the library.
+
 use Getopt::Long;
 use Data::Dumper;
 use Ccsds::Utils qw(decode_cltu_data);

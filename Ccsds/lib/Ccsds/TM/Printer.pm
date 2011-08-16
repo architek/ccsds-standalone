@@ -258,7 +258,9 @@ our @EXPORT = qw(TMPrint);
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+ This module is legacy. 
+ It is complete for one Sat Mission but needs to be slighlty adapted for different PUS customization.
+ Another solution is to use the generic Data::Dumper through Ccsds::Utils::CcsdsDump
 
     use Ccsds::TM::Printer;
 

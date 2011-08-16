@@ -99,6 +99,13 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw($RMLogEntry $RMLog);
 
+=head1 SYNOPSIS
+
+ Decodes an CROME2 RM Log.
+ This module is complete for one Sat Mission. 
+ For other Mission, one needs to check and adapt the format of an RM Log.
+ Thus, the calls to this module are removed from higher level decoding.
+
 =head1 AUTHOR
 
 Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>

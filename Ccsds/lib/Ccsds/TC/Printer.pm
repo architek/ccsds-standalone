@@ -15,7 +15,7 @@ use Data::Dumper;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Indent = 3;
 
-# Takes CLTU (EB90,CBH...,TAIL) Ascii representation as input
+#TODO : depends on CBH parameters
 sub CltuPrint {
 
   my $cblock=int(length(shift)/2-2-8)/7;
@@ -54,15 +54,27 @@ our @EXPORT = qw(TCPrint CltuPrint);
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+This module is used to print TCs including CLTU and PUS TC 
 
     use Ccsds::TC::Printer;
 
     CltuPrint($cltu_ascii);
+    ...
+
     my $decoded = Ccsds::TC::$TCSourcePacket->parse($pstring);
     Ccsds::TC::TCPrint($decoded);
 
     ...
+
+=head1 EXPORTS
+
+=head2 CltuPrint()
+
+Takes CLTU (EB90,CBH...,TAIL) Ascii representation as input
+
+=head2 TCPrint()
+
+Simple printer for TC and PUS content
 
 =head1 AUTHOR
 

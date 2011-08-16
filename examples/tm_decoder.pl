@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 
+#Simplest example
+#Take as input a packet log and decodes it, wether Scos TM or normal TM
+
 use Getopt::Long;
 use Data::Dumper;
 use Ccsds qw($VERSION);

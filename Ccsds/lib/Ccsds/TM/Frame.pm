@@ -31,19 +31,27 @@ my $TMFrameSecondaryHeader = BitStruct('TM Frame Secondary Header',
     Array(sub { $_->ctx->{'Sec Header Length'}-1 }, UBInt8('Data'))
 );
 
+#TODO if Operation Flag is 0, no CLCW 
+#TODO Decode CLCW
+#TODO allow customization for FEC
 our $TMFrame= Struct('TMFrame',
     $TMFrameHeader,
     If ( sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'}}, 
 	$TMFrameSecondaryHeader
     ),
     Array(1105,UBInt8('Data')),
-    UBInt32('CLCW'),   #TODO if Operation Flag is 1 - TODO Decode CLCW
+    UBInt32('CLCW'),   
     #UBInt16('FEC')
 );
 
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw($TMFrameHeader $TMFrame);
+
+=head1 SYNOPSIS
+
+This part allows to work with TM Frames. One can decode these structures or encode TMs to binary.
+Encoding can be used to build scripted TM generators (simulators, ..) or to act as a gateway to forward TMTC.
 
 =head1 AUTHOR
 

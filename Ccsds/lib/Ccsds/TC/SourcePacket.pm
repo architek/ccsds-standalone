@@ -13,7 +13,7 @@ use Data::ParseBinary;
 
 use Ccsds::Common;
 
-
+#TODO Customization (does CCSDS allows custo of this header? Probably for example encryption header)
 our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits
   BitStruct('SecHeadFirstField',
     BitField('Spare1',1),
@@ -25,7 +25,8 @@ our $TCSourceSecondaryHeader = Struct('TCSourceSecondaryHeader',       #32 bits
   UBInt8('Source Id'),
 );
 
-our $TCPacketHeader = Struct('Packet Header',                         #
+#TODO Source Data Length depends on customization
+our $TCPacketHeader = Struct('Packet Header',
   BitStruct('Packet Id',
     BitField('Version Number',3),
     BitField('Type',1),
@@ -54,6 +55,10 @@ our $TCSourcePacket= Struct('TC Source Packet',
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw($TCSourcePacket $TCPacketHeader $TCSourceSecondaryHeader);
+
+=head1 SYNOPSIS
+
+This part allows to decode/encode TC Source Packets, with or without TC Source Secondary Header.
 
 =head1 AUTHOR
 

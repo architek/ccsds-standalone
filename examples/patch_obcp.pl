@@ -2,6 +2,12 @@
 use strict;
 use warnings;
 
+#This script shows an example of rebuild a TM
+#When a detailed OBCP list TM is seen, each included OBCP is parsed.
+#For each steps of each OBCP found, the included TC is patched.
+#The CRC of the new TC is recalculated and the TC is printed.
+#These TCs can then be packed into a AddObcp to overwrite the onboard OBCPs
+
 use Data::Dumper;
 use Ccsds::Utils qw(verify_crc tm_verify_crc patch_crc);
 use Ccsds::TM::SourcePacket

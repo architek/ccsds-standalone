@@ -14,6 +14,8 @@ use Ccsds::Common;
 use Ccsds::TM::RM;
 use Ccsds::TC::SourcePacket;   
 
+#TODO Customization
+
 our $pus_AckOk = Struct('AckOk',
   UBInt16('TC Packet Id'),
   UBInt16('TC Packet SC')
@@ -436,11 +438,13 @@ our @EXPORT = qw(
     $pus_parameter_report
 );
 
-=head1 EXPORT
+=head1 SYNOPSIS
 
-A list of primitives that are exported.  
+ This module is legacy and was part of Version 1. It is complete for one Sat Mission. 
+ For other PUS, it needs to be slighlty adapted.
+ Thus, the calls to this module are removed from higher level decoding.
 
-=head1 SUBROUTINES/METHODS
+=head1 PRIMITIVES
 
 =head2    $pus_AckOk 
 =cut

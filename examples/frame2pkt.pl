@@ -5,7 +5,7 @@ use warnings;
 #######################
 # Shows how to use read_frames and plugins
 # It goes through a frame file and outputs included packets
-# For each packet or frame a plugin can be registered
+# For each packet or frame, a plugin can be registered
 # It will be called with the structure as first element
 #######################
 
@@ -15,6 +15,7 @@ use Ccsds::TM::File qw/read_frames/;
 use Data::Dumper;
 
 #List of "plugins"
+
 #Sub to count distribution on apid
 #########
 my %n_apid;
@@ -60,6 +61,7 @@ sub frame_print_header {
 #    print CcsdsDump($tmframe);
 }
 
+#Define format of file. Frame Length is redundant with info in the frame.
 my $config={ 
     record_len => 1115,     # Size of each records
     offset_data => 0,       # Offset of the frame in this record

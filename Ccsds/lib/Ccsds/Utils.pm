@@ -71,9 +71,12 @@ sub rs_deinterleaver {
 
 #Hex dumper for long data arrays
 #Each line of data is 64 bytes.
+#arg0: hex bin stream to dump
+#arg1: 1 for ascii 
 sub hdump {
     my $offset = 0;
     my(@array,$format,$res);
+    my $ascii=$_[1]||0;
     foreach my $data (unpack("a64"x(length($_[0])/64)."a*",$_[0])) {
         my $len = length($data);
         if ($len == 64) {
@@ -86,9 +89,9 @@ sub hdump {
             $format="0x%04x (%05d)" .
                "   " . "%s%s%s%s " x 16 . " %s\n";
         } 
-        $data ="";
-	  #Uncomment next line to show ascii
-        #$data =~ tr/\0-\37\177-\377/./; 
+        if ( $ascii ) {
+            $data =~ tr/\0-\37\177-\377/./; 
+        } else { $data=""; }
         $res .= sprintf($format,$offset,$offset,@array,$data);
         $offset += 64;
     }
@@ -103,7 +106,7 @@ sub get_orders {
     my ($hash)=@_;
     my $orders= [ 
 #TM Packet
-['Packet Header','Packet Data Field'],      #Packet
+['Packet Header','Has Crc', 'Packet Data Field'],      #Packet
  [ "Packet Id", "Packet Sequence Control" ],   # PacketHeader
   [ "Version Number","Type","DFH Flag","Apid" ], #PacketId
   [ "Segmentation Flags","Source Seq Count","Packet Length" ], # Packet Sequence Control
@@ -137,7 +140,7 @@ sub get_orders {
 #Debug dumper to print out Ccsds structures. It uses get_orders() to print keys in order
 #TODO TCs
 sub CcsdsDump {
-    my ($decoded)=@_;
+    my ($decoded,$ascii)=@_;
     my $srcdata;
     
     #Fields to convert in hex in dumper output
@@ -152,17 +155,18 @@ sub CcsdsDump {
     #Dump using a basic keys ordering
     $Data::Dumper::Sortkeys=\&get_orders;
     my $dumper = Dumper($decoded);
+    $Data::Dumper::Sortkeys=undef;
 
     #Change some fields to their hex representation
     foreach (@tohex) { 
         $dumper =~ m/$_.*=>\s([[:alnum:]]*),?/; 
-        next unless defined $1;
+        next unless ( defined $1 and $1 ne "undef");
         my $hv = sprintf( "%#x", $1 ); 
         $dumper =~ s/$1/$hv/; 
     }
 
     #Convert Source Data Scalar to hexdumper
-    $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump(pack('H*',$1))/e;
+    $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump(pack('H*',$1),$ascii)/e;
 
     return $dumper;
 }

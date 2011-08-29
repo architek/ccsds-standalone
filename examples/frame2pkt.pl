@@ -9,7 +9,7 @@ use warnings;
 # It will be called with the structure as first element
 #######################
 
-BEGIN { require "custo-sw.pm"; }            # customize for SW
+BEGIN { require "custo-s3.pm"; }            # customize for S3
 use Ccsds::Utils qw/CcsdsDump/;
 use Ccsds::TM::File qw/read_frames/;
 use Data::Dumper;
@@ -61,14 +61,18 @@ sub frame_print_header {
 #    print CcsdsDump($tmframe);
 }
 
-#Define format of file. Frame Length is redundant with info in the frame.
-my $config={ 
-    record_len => 1115,     # Size of each records
-    offset_data => 0,       # Offset of the frame in this record
+#Define format of file. 
+#Note:Frame Length is redundant with info in the frame.
+my $config={
+    record_len => 32+4+1115+160,     # Size of each records
+    offset_data => 32+4,       # Offset of the frame in this record
     frame_len => 1115,      # Frame length, without Sync and without Reed Solomon Encoding Tail and FEC if any
-    debug => 1,             # 0:quiet , 1:headers , 2: full PDU , 3:Debug , 4:DataParseBinary Debug
-    print_frames => 1,      # For debug mode 1 and 2
-    print_packets => 1,
+    debug => 2,             # Parser debugger 0: quiet, 1: print headers, 2: print full CADU, 3: Self Debug, 4:DataParseBinary Debug
+#    verbose => 1,
+    has_sync  => 1,
+    ascii => 1,             #hex and ascii output of packet data
+    idle_packets => 0,      #Show idle packets
+#Callbacks to execute at each frame and at each packet
     coderefs_frame =>  [ \&frame_print_header ],
     coderefs_packet => [ \&_0rotate_packets , \&apid_dist , \&ssc_gapCheck ],
 };

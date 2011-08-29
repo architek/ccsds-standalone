@@ -25,14 +25,21 @@ sub try_decode_pkt {
     try { 
     #   \{
         $tmpacketh = $TMSourcePacketHeader->parse($data); 
-        print CcsdsDump( $tmpacketh ) if $config->{debug};
         $apid = $tmpacketh->{'Packet Id'}->{'Apid'};
         $is_idle = $apid == 0b11111111111? 1:0; 
         $pkt_len = $tmpacketh->{'Packet Sequence Control'} ->{'Packet Length'} + 1 + 6;
+        
+        if ( $config->{debug} ) {
+            if ( $config->{idle_packets} == 1 || !$is_idle ) { 
+                print CcsdsDump( $tmpacketh );
+            }
+        }
 
         $tmpacket = $TMSourcePacket->parse( $data );
         if ( $config->{debug} >= 2 ) {
-            print CcsdsDump( $tmpacket ) ;
+            if ( $config->{idle_packets} == 1 || !$is_idle ) { 
+                print CcsdsDump( $tmpacket , $config->{ascii} ) ;
+            }
         }
     } catch { 
         print "Undecoded packet\n" if $config->{debug} >= 3;
@@ -44,7 +51,7 @@ sub try_decode_pkt {
     #Execute coderefs
     $_->($tmpacket) for @{ $config->{coderefs_packet} };
     #We got a complete packet, verify CRC
-    if ( ! $is_idle  && ! tm_verify_crc( unpack 'H*',substr ( $data, 0, $pkt_len ) ) ) { 
+    if ( $tmpacket->{'Has Crc'}  && ! tm_verify_crc( unpack 'H*',substr ( $data, 0, $pkt_len ) ) ) { 
         warn "CRC of packet does not match\n" ; 
         print unpack('H*', $data) , "\n" if $config->{debug} >= 3; 
     }
@@ -95,15 +102,15 @@ FRAME_DECODE:
 	    my $sec            = $tmframe_header->{'Sec Header'};
 	    $vc                = $tmframe_header->{'Virtual Channel Id'};
 	    if ( $fhp == 0b11111111110 ) {
-	        print "Frame $frame_nr is an OID Transfer Frame\n" if $config->{debug}>=2;
+	        print "Frame $frame_nr is an OID Transfer Frame\n" if $config->{verbose};
 	        next;
 	    }
 	    print CcsdsDump($tmframe_header) if $config->{debug};
-	    print "Fhp:$fhp," if $config->{debug}>=2;
+	    print "Fhp:$fhp," if $config->{debug}>2;
 	    print "Frame:" 
 	      . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|"
 	      . unpack( 'H*', substr( $raw, 6 )) . "|\n"
-	      if $config->{debug}>=2;
+	      if $config->{debug}>2;
 	
 	    #Remove Primary header and Secondary if there
 	    my $offset = 6;    

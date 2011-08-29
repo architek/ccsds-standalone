@@ -49,23 +49,32 @@ our $TMSourcePacketHeader=
 
 sub source_data_length {
     my $sdl;
-    $sdl= $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Packet Length'} +1 -2 ;
+    $sdl= 1 + $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Packet Length'} ;
+
+    #16 Bits CRC
+    $sdl -= 2 if ( $_->ctx(1)->{'Has Crc'} );
+
+    #DataField Header?
     if ( $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} ) {
         $sdl -= $_->ctx->{'TMSourceSecondaryHeader'}->{'Length'} ;
     }
     return $sdl;
 }
 
-#TODO Time Packet
-our $TMSourcePacket = Struct('TM Source Packet',
+#By default, we consider that Idle packets have no crc 
+my $has_crc= Value('Has Crc', sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'Apid'} != 2047 ? 1:0 } );
 
+our $TMSourcePacket = Struct('TM Source Packet',
   $TMSourcePacketHeader,
+  $Ccsds::Custo::has_crc || $has_crc ,
   Struct('Packet Data Field',
-      If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
+      If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} } ,
           $TMSourceSecondaryHeader,
       ),
       Array(\&source_data_length,UBInt8('Source Data')),
-      UBInt16('Packet Error Control'),          #Can be optionnal
+      If ( sub { $_->ctx(1)->{'Has Crc'} } ,          #Can be optionnal, overriden by caller
+          UBInt16('Packet Error Control')
+      ),
   ),
 );
 

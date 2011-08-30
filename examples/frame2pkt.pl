@@ -30,7 +30,7 @@ sub apid_dist {
 my $l_packets=[];
 sub _0rotate_packets {
     push @$l_packets , $_[0];
-    shift @$l_packets if ($#$l_packets >= 10);
+    shift @$l_packets if 10 <= @$l_packets ;
 }
 
 #Sub to check for SSC Gap
@@ -55,25 +55,26 @@ sub ssc_gapCheck {
 #########
 my $n=0;
 sub frame_print_header {
-#    my ($tmframe)=@_;
+    my ($tmframe)=@_;
     printf "-- Frame %08d " . "-" x 80 . "\n" , ++$n unless ($n%100);
-#    $tmframe->{'Data'}=[];
-#    print CcsdsDump($tmframe);
+    $tmframe->{'Data'}=[];
+    print CcsdsDump($tmframe);
 }
 
 #Define format of file. 
 #Note:Frame Length is redundant with info in the frame.
 my $config={
     record_len => 32+4+1115+160,     # Size of each records
-    offset_data => 32+4,       # Offset of the frame in this record
+    offset_data => 32+4,       # Offset of the frame in this record (after the sync marker)
     frame_len => 1115,      # Frame length, without Sync and without Reed Solomon Encoding Tail and FEC if any
     debug => 2,             # Parser debugger 0: quiet, 1: print headers, 2: print full CADU, 3: Self Debug, 4:DataParseBinary Debug
-#    verbose => 1,
-    has_sync  => 1,
+    #verbose => 1,
+    has_sync  => 1,         #If file has syncro markers, use them
     ascii => 1,             #hex and ascii output of packet data
     idle_packets => 0,      #Show idle packets
-#Callbacks to execute at each frame and at each packet
-    coderefs_frame =>  [ \&frame_print_header ],
+#Callbacks to execute at each frame
+    #coderefs_frame =>  [ \&frame_print_header ],
+#Callbacks to execute at each packet
     coderefs_packet => [ \&_0rotate_packets , \&apid_dist , \&ssc_gapCheck ],
 };
 

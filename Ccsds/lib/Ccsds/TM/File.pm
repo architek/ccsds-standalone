@@ -58,6 +58,25 @@ sub try_decode_pkt {
     return $pkt_len;
 }
 
+#Search a sync in file and if yes go back by an offset (relating to first byte after sync)
+#This is not very io efficient 
+sub search_sync {
+    use Fcntl "SEEK_CUR";
+    my ($file,$offset)=@_;
+    my $raw;
+    my $bytes=0;
+    while(! eof $file) {
+        read( $file, $raw, 4 );
+        if ( $raw eq "\x1a\xcf\xfc\x1d") {
+            seek( $file , -$offset , SEEK_CUR );
+            return $bytes;
+        }
+        seek( $file , -3 , SEEK_CUR );
+        $bytes++;
+    }
+    return -1; #eof hit
+}
+
 sub read_frames {
     my ($filename,$config)=@_; 
 
@@ -66,7 +85,7 @@ sub read_frames {
     my $pkt_len;
     my @packet_vcid = ("")x8;                               # VC 1..7
 
-    #Remove buffering - This slows down a lot the process but allows to correlate errors to normal output
+    #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $| = 1 if  $config->{debug} >= 3;
 
     open my $fin, "<", $filename or die "can not open $filename"; 
@@ -76,7 +95,18 @@ FRAME_DECODE:
 	while(! eof $fin) {
 	    my $raw;
 	    
-	    # Read a record
+	    #Search Sync if file has them
+        if ( $config->{has_sync} ) {
+            my $nbytes=search_sync($fin,$config->{offset_data});
+            if ( $nbytes == -1 ) { 
+                warn "Hit end of file while searching SYNC MARKER\n" ; 
+                last;
+            }
+            $nbytes-=$config->{offset_data}-4;
+            warn "Had to skip $nbytes bytes to find sync marker\n" if $nbytes;
+        }
+
+        # Read a record
 	    if ( read( $fin, $raw, $config->{record_len}) != $config->{record_len} ) {
             warn "Fatal: Not a full frame record of " . $config->{record_len} . " bytes\n" ;
             return -1;
@@ -113,7 +143,7 @@ FRAME_DECODE:
 	      if $config->{debug}>2;
 	
 	    #Remove Primary header and Secondary if there
-	    my $offset = 6;    
+	    my $offset = 6;
 	    $offset += $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} +1 if ($sec);
 	    $raw = substr $raw,$offset;
 	
@@ -194,18 +224,21 @@ The module expects a filename and a configuration describing:
  }
 
  #Define format of file. Note: Frame Length is redundant with info in the frame.
-
- my $config={ 
-    record_len => 1115,     # Size of each records
-    offset_data => 0,       # Offset of the frame in this record
-    frame_len => 1115,      # Frame length, without Sync and without Reed Solomon Encoding Tail and FEC if any
-    debug => 1,             # 0:quiet , 1:headers , 2: full PDU , 3:Debug , 4:DataParseBinary Debug
-    print_frames => 1,      # For debug mode 1 and 2
-    print_packets => 1,
-    coderefs_frame =>  [ \&frame_print_header ],
-    coderefs_packet => [ \&packet_print_header ],
+ my $config={
+     record_len => 32+4+1115+160,     # Size of each records, here we have a record header of 32 bytes and sync and reedsolomon
+     offset_data => 32+4,       # Offset of the frame in this record (after the sync marker)
+     frame_len => 1115,      # Frame length, without Sync and without Reed Solomon Encoding Tail and FEC if any
+     debug => 2,             # Parser debugger 0: quiet, 1: print headers, 2: print full CADU, 3: Self Debug, 4:DataParseBinary Debug
+     verbose => 1,
+     has_sync  => 1,
+     ascii => 1,             #hex and ascii output of packet data
+     idle_packets => 0,      #Show idle packets
+ #Callbacks to execute at each frame
+     #coderefs_frame =>  [ \&frame_print_header ],
+ #Callbacks to execute at each packet
+     coderefs_packet => [ \&_0rotate_packets , \&apid_dist , \&ssc_gapCheck ],
  };
-
+ 
  my $nf;
 
  #Call the loop which will go through the complete file

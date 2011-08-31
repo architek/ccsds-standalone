@@ -150,7 +150,9 @@ sub CcsdsDump {
     #Overwrite "Source Data" array by its corresponding scalar. It is converted to ascii for Data::Dumper
     $decoded->{'Packet Data Field'}->{'Source Data'} = 
        unpack('H*',pack( 'C*' , @{ $decoded->{'Packet Data Field'}->{'Source Data'} } ) )
-		if ( exists ($decoded->{'Packet Data Field'}) && exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) ) ;
+		if ( exists ($decoded->{'Packet Data Field'}) && 
+            exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) && 
+            ref( $decoded->{'Packet Data Field'}->{'Source Data'} ) eq 'ARRAY' ) ;
 
     #Dump using a basic keys ordering
     $Data::Dumper::Sortkeys=\&get_orders;

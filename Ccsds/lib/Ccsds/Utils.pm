@@ -148,11 +148,12 @@ sub CcsdsDump {
     
     #Dumper printout of source data is not usable.
     #Overwrite "Source Data" array by its corresponding scalar. It is converted to ascii for Data::Dumper
-    $decoded->{'Packet Data Field'}->{'Source Data'} = 
-       unpack('H*',pack( 'C*' , @{ $decoded->{'Packet Data Field'}->{'Source Data'} } ) )
-		if ( exists ($decoded->{'Packet Data Field'}) && 
-            exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) && 
-            ref( $decoded->{'Packet Data Field'}->{'Source Data'} ) eq 'ARRAY' ) ;
+	if ( exists ($decoded->{'Packet Data Field'}) && 
+            exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) ) {
+        #Keep backup 
+        $srcdata=$decoded->{'Packet Data Field'}->{'Source Data'};
+        $decoded->{'Packet Data Field'}->{'Source Data'} = unpack('H*',pack( 'C*' , @{ $srcdata } ) );
+    }
 
     #Dump using a basic keys ordering
     $Data::Dumper::Sortkeys=\&get_orders;
@@ -169,6 +170,9 @@ sub CcsdsDump {
 
     #Convert Source Data Scalar to hexdumper
     $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump(pack('H*',$1),$ascii)/e;
+    
+    #Put back source data as array
+    $decoded->{'Packet Data Field'}->{'Source Data'}=$srcdata;
 
     return $dumper;
 }

@@ -21,6 +21,7 @@ our $r_tmp = {
                                                 'Apid' => 260
                                               }
                              },
+          'Has Crc' => 1,
           'Packet Data Field' => {
                                    'Packet Error Control' => 20454,
                                    'TMSourceSecondaryHeader' => {

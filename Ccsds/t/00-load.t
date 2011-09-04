@@ -1,6 +1,6 @@
 #!perl -T
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 BEGIN {
     use_ok( 'Ccsds' ) || print "Bail out!  ";
@@ -12,9 +12,11 @@ BEGIN {
     use_ok( 'Ccsds::StdTime' ) || print "Bail out!  ";
     use_ok( 'Ccsds::TM::Pus' ) || print "Bail out!  ";
     use_ok( 'Ccsds::TM::RM' ) || print "Bail out!  ";
+    use_ok( 'Ccsds::TM::File' ) || print "Bail out!  ";
     use_ok( 'Ccsds::TC::SourcePacket' ) || print "Bail out!  ";
     use_ok( 'Ccsds::TC::Frame' ) || print "Bail out!  ";
     use_ok( 'Ccsds::TC::Printer' ) || print "Bail out!  ";
+    use_ok( 'Ccsds::TC::File' ) || print "Bail out!  ";
 }
 
 diag( "Testing Ccsds Library loading $Ccsds::VERSION, Perl $], $^X" );

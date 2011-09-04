@@ -144,7 +144,7 @@ sub CcsdsDump {
     my ($decoded,$ascii)=@_;
     
     #Fields to convert in hex in dumper output
-    my @tohex = ('Packet Error Control');
+    my @tohex = qw{ 'Packet Error Control' 'CLCW' };
     my $dumper;
     
     #Dumper printout of source data is not usable.
@@ -163,7 +163,7 @@ sub CcsdsDump {
         #Change some fields to their hex representation
         foreach (@tohex) { 
             $dumper =~ m/$_.*=>\s([[:alnum:]]*),?/; 
-            next unless ( defined $1 and $1 ne "undef");
+            next unless ( defined $1 and $1 ne "undef" and $1 ne "");
             my $hv = sprintf( "%#x", $1 ); 
             $dumper =~ s/$1/$hv/; 
         }

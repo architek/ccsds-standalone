@@ -33,11 +33,12 @@ my $TMFrameSecondaryHeader = BitStruct('TM Frame Secondary Header',
 
 #TODO if Operation Flag is 0, no CLCW 
 #TODO Decode CLCW
-#TODO allow customization for FEC
+#TODO customization for FEC
+#TODO customization for Frame length
 our $TMFrame= Struct('TMFrame',
     $TMFrameHeader,
     If ( sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'}}, 
-	$TMFrameSecondaryHeader
+	    $TMFrameSecondaryHeader
     ),
     Array(1105,UBInt8('Data')),
     UBInt32('CLCW'),   

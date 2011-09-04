@@ -138,43 +138,52 @@ sub get_orders {
 }
 
 #Debug dumper to print out Ccsds structures. It uses get_orders() to print keys in order
+#Some array fields are printed using a pretty hex dumper with ascii decoding
 #TODO TCs
 sub CcsdsDump {
     my ($decoded,$ascii)=@_;
-    my $srcdata;
     
     #Fields to convert in hex in dumper output
     my @tohex = ('Packet Error Control');
+    my $dumper;
     
     #Dumper printout of source data is not usable.
     #Overwrite "Source Data" array by its corresponding scalar. It is converted to ascii for Data::Dumper
-	if ( exists ($decoded->{'Packet Data Field'}) && 
-            exists ( $decoded->{'Packet Data Field'}->{'Source Data'} ) ) {
-        #Keep backup 
-        $srcdata=$decoded->{'Packet Data Field'}->{'Source Data'};
-        $decoded->{'Packet Data Field'}->{'Source Data'} = unpack('H*',pack( 'C*' , @{ $srcdata } ) );
-    }
-
-    #Dump using a basic keys ordering
-    $Data::Dumper::Sortkeys=\&get_orders;
-    my $dumper = Dumper($decoded);
-    $Data::Dumper::Sortkeys=undef;
-
-    #Change some fields to their hex representation
-    foreach (@tohex) { 
-        $dumper =~ m/$_.*=>\s([[:alnum:]]*),?/; 
-        next unless ( defined $1 and $1 ne "undef");
-        my $hv = sprintf( "%#x", $1 ); 
-        $dumper =~ s/$1/$hv/; 
-    }
-
-    #Convert Source Data Scalar to hexdumper
-    $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump(pack('H*',$1),$ascii)/e;
+    {
+    	local $decoded->{'Packet Data Field'}->{'Source Data'} = unpack('H*',pack( 'C*' , @{ $decoded->{'Packet Data Field'}->{'Source Data'}}) )
+                if ( exists ($decoded->{'Packet Data Field'}) && exists ($decoded->{'Packet Data Field'}->{'Source Data'}) );
+        local $decoded->{'Data'} = unpack('H*', pack( 'C*' , @{ $decoded->{Data} }) ) 
+                if ( exists ($decoded->{'TM Frame Header'}) && exists ($decoded->{Data}) );    #frames normally always have data
     
-    #Put back source data as array
-    $decoded->{'Packet Data Field'}->{'Source Data'}=$srcdata;
+        #Dump using a basic keys ordering
+        $Data::Dumper::Sortkeys=\&get_orders;
+        $dumper = Dumper($decoded);
+        $Data::Dumper::Sortkeys=undef;
+    
+        #Change some fields to their hex representation
+        foreach (@tohex) { 
+            $dumper =~ m/$_.*=>\s([[:alnum:]]*),?/; 
+            next unless ( defined $1 and $1 ne "undef");
+            my $hv = sprintf( "%#x", $1 ); 
+            $dumper =~ s/$1/$hv/; 
+        }
+    
+        #Convert Source Data Scalar to hexdumper
+        $dumper =~ s/'Source Data' => '([^']*)'/"'Source Data' =>\n".hdump(pack('H*',$1),$ascii)/e;
+        $dumper =~ s/'Data' => '([^']*)'/"'Data' =>\n".hdump(pack('H*',$1),$ascii)/e;
+    }
 
     return $dumper;
+}
+
+#Deep search of keys in *hashes* structures
+sub deep_hsearch {
+    my ($ref, $key) = @_;
+    while (my ($k, $v) = each %$ref) {
+        return deepsearch($v, $key) if ref $v eq "HASH";
+        return $v if $k eq $key;
+    }
+    return;
 }
 
 require Exporter;

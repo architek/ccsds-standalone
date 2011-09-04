@@ -32,6 +32,7 @@ my $p_Field= BitStruct('P-Field',
     BitField('Detail Bits',4),
 );
 
+#TODO Finish case $milli_size=0 (no 3rd field)
 sub CDS {
     my ($day_size,$milli_size,$epoch)=@_;
     # default CCSDS Epoch: 1/1/1958
@@ -153,7 +154,7 @@ Given a Coarse and a Fine precision (in bytes)
 
 Returns a CUC Structure of 3 elements: Coarse, Fine and OBT being the calculated value
 
-The formulae to calcuate this value is the recommended one:
+The formulae to calcuate this value is:
 
 OBT(c,f)= C1*256**(c-1)+C2*256**(c-2)..+Cc*256**0 + F1*256**-1 + F1*256**-2 .. + Ff*256**-f
 
@@ -167,7 +168,6 @@ To calculate offset to epoch, DateTime is used (which takes care of leap second)
 
 The subsecond part is simply appended (with 24 bits, no easier solution).
 
-TODO Finish case $milli_size=0 (no 3rd field)
 
 =head1 AUTHOR
 

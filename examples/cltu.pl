@@ -8,10 +8,11 @@ use warnings;
 
 use Getopt::Long;
 use Data::Dumper;
-use Ccsds::Utils qw(decode_cltu_data);
-use Ccsds::TC::Printer qw(TCPrint CltuPrint $VERSION);
+use Ccsds qw/$VERSION/;
+use Ccsds::TC::Printer qw(TCPrint CltuPrint);
 use Ccsds::TC::Frame qw($Cltu $TCFrame);
 use Ccsds::TC::SourcePacket qw($TCSourcePacket);
+use Ccsds::Utils qw{ rs_deinterleaver };
 
 our $odebug   = 0;
 my $odumper  = 0;

@@ -66,7 +66,7 @@ sub search_sync {
     my $raw;
     my $bytes=0;
     while(! eof $file) {
-        read( $file, $raw, 4 );
+        last unless read( $file, $raw, 4 ) == 4;
         if ( $raw eq "\x1a\xcf\xfc\x1d") {
             seek( $file , -$offset , SEEK_CUR );
             return $bytes;

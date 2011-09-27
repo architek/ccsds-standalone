@@ -20,6 +20,9 @@ our $TCFrameHeader= BitStruct('TC Frame Header',
     BitField('Virtual Channel Id',6),           #16 bits
     BitField('Frame Length',10), 
     UBInt8('Frame Sequence Number'),            #8 bits
+
+    #Length of the CLTU = 10 + ((Total length of the Frames + 6) / 7) * 8
+    Value('Cltu Length', sub { 10 + int( ($_->ctx->{'Frame Length'} +1 + 6 )/7)*8 }),
 );
 
 our $TCFrame= Struct('TCFrame',
@@ -38,10 +41,7 @@ our $Cltu= Struct('Cltu',
     Magic("\xEB\x90"),
     $TCFrameHeader,
     $TCSegmentHeader,
-#Length of the CLTU = 10 + ((Total length of the Frames + 6) / 7) * 8
-    Value('Cltu Length', sub { 10 + int( ($_->ctx->{'TC Frame Header'}->{'Frame Length'} +1 + 6 )/7)*8 }),
-    
-    Array(sub { $_->ctx->{'Cltu Length'} - 2 - 5 - 1 }, UBInt8('Cltu Data')),
+    Array(sub { $_->ctx->{'TC Frame Header'}->{'Cltu Length'} - 2 - 5 - 1 }, UBInt8('Cltu Data')),
 
 );
 

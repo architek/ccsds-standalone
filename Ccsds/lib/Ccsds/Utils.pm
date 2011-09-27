@@ -69,6 +69,23 @@ sub rs_deinterleaver {
     return $odata;
 }
 
+#Takes input as CLTU (EB90,CBH..,TAIL)
+#Removes EB90, CBH 1 bit correction code, TAIL
+sub rs_deintbin {
+    my ( $cbh_len, $idata, $fl ) = @_;     # Ascii data , Included frame TOTAL length
+    my ($ret,$l);
+    my $offset=0;
+    while ( $fl > 0 ) {
+        $l = $cbh_len;
+        $l = $fl if ( $fl < $cbh_len );
+        $ret .= substr( $idata, $offset, $l );
+        $offset += $cbh_len+1;
+        $fl -= $cbh_len;
+    }
+    print "Data after CBH decoding :\n    ", unpack("H*",$ret) , "\n" if $::odebug;
+    return $ret;
+}
+
 #Hex dumper for long data arrays
 #Each line of data is 64 bytes.
 #arg0: hex bin stream to dump
@@ -188,7 +205,7 @@ sub deep_hsearch {
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver CcsdsDump);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver rs_deintbin CcsdsDump);
 
 =head1 SYNOPSIS
 

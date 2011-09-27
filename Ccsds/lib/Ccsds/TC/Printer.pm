@@ -9,7 +9,6 @@ Ccsds::TC::Printer - Simple printer for CCSDS TC Source Packets and CLTUs
 
 =cut
 
-use Switch;
 use Data::Dumper;
 
 $Data::Dumper::Terse = 1;

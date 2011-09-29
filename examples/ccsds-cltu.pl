@@ -3,7 +3,6 @@
 
 use strict;
 use warnings;
-use Ccsds::Utils;
 use Ccsds::TC::File;
 
 my $config = { debug => 0 };

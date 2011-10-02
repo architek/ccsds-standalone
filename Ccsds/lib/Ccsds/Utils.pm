@@ -17,21 +17,15 @@ sub calc_crc {
 }
 
 sub verify_crc {
-
     ( my $crc_in, my $data ) = @_;
 
     my $sdata = pack( "H*", $data );
     my $crc = calc_crc $sdata;
-
-    print 'Given Crc:' . sprintf( '%x', $crc_in ) . "\n" if $::odebug;
-    print 'Calculated Crc:' . sprintf( '%x', $crc ) . "\n" if $::odebug;
-
+    printf "Given Crc:%x\nCalculated Crc:%x\n", $crc_in, $crc if $::odebug;
     return $crc eq $crc_in;
-
 }
 
 sub tm_verify_crc {
-
     #split string into data,crc
     ( my $data, my $crc_in ) =
       ( substr( $_[0], 0, -4 ), hex substr( $_[0], -4 ) );
@@ -45,21 +39,17 @@ sub tm_verify_crc_bin {
 
 #Patch 16bit-crc included in the binary stream
 sub patch_crc {
-
-  my $data=shift;
-
-  substr( $$data, -2 ) = pack( 'n', calc_crc( substr( $$data, 0, -2 ) ) );
-
+  substr( $$_[0], -2 ) = pack( 'n', calc_crc( substr( $$_[0], 0, -2 ) ) );
 }
 
 #Takes input as hex ascii representation of a CLTU (EB90,CBH..,TAIL)
 #Removes EB90, CBH 1 bit correction code, TAIL
 sub rs_deinterleaver {
     my ( $cbh_len, $idata, $fl ) = @_;     # Ascii data , Included frame TOTAL length
-    my $odata;
+    my ($odata,$l);
     my $offset = 0;
     while ( $fl > 0 ) {
-        my $l = $cbh_len;
+        $l = $cbh_len;
         $l = $fl if ( $fl < $cbh_len );
         $odata .= substr( $idata, $offset, $l * 2 );
         $offset += 2*($cbh_len+1);

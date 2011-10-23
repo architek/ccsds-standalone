@@ -39,7 +39,7 @@ sub tm_verify_crc_bin {
 
 #Patch 16bit-crc included in the binary stream
 sub patch_crc {
-  substr( $$_[0], -2 ) = pack( 'n', calc_crc( substr( $$_[0], 0, -2 ) ) );
+  substr( ${$_[0]}, -2 ) = pack( 'n', calc_crc( substr( ${$_[0]}, 0, -2 ) ) );
 }
 
 #Takes input as hex ascii representation of a CLTU (EB90,CBH..,TAIL)
@@ -193,9 +193,15 @@ sub deep_hsearch {
     return;
 }
 
+sub is_idle {
+    my ($tm)=@_;
+    return  ( exists($tm->{'Packet Header'}) && $tm->{'Packet Header'}->{'Packet Id'}->{Apid} == 2047 )
+                ? 1:0;
+}
+
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver rs_deintbin CcsdsDump);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver rs_deintbin CcsdsDump is_idle);
 
 =head1 SYNOPSIS
 

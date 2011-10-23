@@ -49,7 +49,7 @@ sub try_decode_pkt {
 
     print "Decoded packet\n" if $config->{debug} >= 3;
     #Execute coderefs
-    $_->($tmpacket) for @{ $config->{coderefs_packet} };
+    $_->($tmpacket, $data) for @{ $config->{coderefs_packet} };
     #We got a complete packet, verify CRC
     if ( $tmpacket->{'Has Crc'}  && ! tm_verify_crc( unpack 'H*',substr ( $data, 0, $pkt_len ) ) ) { 
         warn "CRC of packet does not match\n" ; 
@@ -118,7 +118,7 @@ FRAME_DECODE:
         #Parse frame
 	    my $tmframe = $TMFrame->parse( $raw );
         #Execute coderefs
-        $_->($tmframe) for @{ $config->{coderefs_frame} };
+        $_->($tmframe, $raw) for @{ $config->{coderefs_frame} };
 	    #Remove CLCW
 	    $raw = substr $raw,0,-4;
 	

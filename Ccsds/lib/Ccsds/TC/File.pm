@@ -26,6 +26,8 @@ use constant {
     SEGMENTHEADER_LEN => 1   #
 };
 
+#This contains data found before EB90
+my $rec_head;
 sub read_frames {
   my ($filename, $config)=@_;
     
@@ -42,9 +44,6 @@ sub read_frames {
   while(! eof $fin) { 
     my ($headbuf,$buf);
  
-    # Read a record
-#    read($fin,$buf,32);
-
     last if search($fin,2) < 0;
     #Read Sync + TC Frame Header
     if ( read( $fin, $headbuf, 2 + 5) != 7 ) {
@@ -71,11 +70,12 @@ sub read_frames {
     my $Scid   = $cltu->{'TC Frame Header'}->{'SpaceCraftId'};
     my $Vcid   = $cltu->{'TC Frame Header'}->{'Virtual Channel Id'};
     my $FLength= $cltu->{'TC Frame Header'}->{'Frame Length'};
-    print "Decoded Frame and included Segment: MapId=$mapid, Bypass=$bypass, Scid=$Scid, Vcid=$Vcid, Frame Length=$FLength\n";
+    print "Decoded Frame and included Segment: MapId=$mapid, Bypass=$bypass, Scid=$Scid, Vcid=$Vcid, Frame Length=$FLength\n" if $config->{debug};
     
     my $cltu_data = rs_deintbin( 7, $buf, $cltu->{'TC Frame Header'}->{'Frame Length'} + 1 ); #We use BCH Length 7
 #we now have CLTU *data* , BCH removed
-
+    $_->($cltu_data, $rec_head) for @{ $config->{coderefs_cltu} };
+    
 #State Machine for Segment handling
     my $seqf = $cltu->{'Segment Header'}->{'Sequence Flags'};
 #Push segment datas = frameheader+segmentheader
@@ -99,15 +99,10 @@ sub read_frames {
     }
 
     #This is a STANDalone segment or LAST segment, decode the overall TC packet
-    my $packet = $TCSourcePacket->parse($segments_data);
+    my $tcpacket = $TCSourcePacket->parse($segments_data);
     $nr++;
 
-    #if ($odumper) { 
-   #     print Dumper($packet);
-   # } else { 
-   #     print " "; 
-        TCPrint($packet);
-   # }
+    $_->($tcpacket, $segments_data) for @{ $config->{coderefs_packet} };
     $segments_data = ();
 
   }
@@ -119,12 +114,15 @@ sub search {
     my ($file,$offset)=@_;
     my $raw;
     my $bytes=0;
+    #Keep TMTCFE headers
+    $rec_head="";
     while(! eof $file) {
         last unless read( $file, $raw, 2 ) == 2;
         if ( $raw eq "\xeb\x90") {
             seek( $file , -$offset , SEEK_CUR );
             return $bytes;
         }
+        $rec_head .= substr $raw, 0, 1;
         seek( $file , -1 , SEEK_CUR );
         $bytes++;
     }

@@ -195,13 +195,13 @@ sub deep_hsearch {
 
 sub is_idle {
     my ($tm)=@_;
-    return  ( exists($tm->{'Packet Header'}) && $tm->{'Packet Header'}->{'Packet Id'}->{Apid} == 2047 )
+    return  ( exists($tm->{'Packet Header'}) && $tm->{'Packet Header'}->{'Packet Id'}->{vApid} == 2047 )
                 ? 1:0;
 }
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver rs_deintbin CcsdsDump is_idle);
+our @EXPORT = qw(calc_crc verify_crc tm_verify_crc tm_verify_crc_bin patch_crc rs_deinterleaver rs_deintbin CcsdsDump is_idle hdump);
 
 =head1 SYNOPSIS
 

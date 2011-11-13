@@ -15,10 +15,14 @@ our $r_tmp = {
                                                               'Segmentation Flags' => 3
                                                             },
                                'Packet Id' => {
+                                                'vApid' => 260,
                                                 'DFH Flag' => 1,
                                                 'Type' => 0,
                                                 'Version Number' => 0,
-                                                'Apid' => 260
+                                                'Apid' => {
+                                                            'PID' => 16,
+                                                            'Pcat' => 4
+                                                          }
                                               }
                              },
           'Has Crc' => 1,
@@ -93,9 +97,13 @@ our $r_tmph= {
                                          'Segmentation Flags' => 3
                                        },
           'Packet Id' => {
+                           'vApid' => 260,
                            'DFH Flag' => 1,
                            'Type' => 0,
                            'Version Number' => 0,
-                           'Apid' => 260
+                           'Apid' => { 
+                               'PID' => 16, 
+                               'Pcat' => 4 
+                                     }
                          }
         };

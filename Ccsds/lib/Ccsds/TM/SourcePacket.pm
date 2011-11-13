@@ -38,7 +38,8 @@ our $TMSourcePacketHeader=
           BitField('Version Number',3),
           BitField('Type',1),
           Flag('DFH Flag'),
-          BitField('Apid',11),
+          $Apid,
+          Value('vApid', sub { 16 * $_->ctx->{Apid}->{PID} + $_->ctx->{Apid}->{Pcat} } ),
         ),
         BitStruct('Packet Sequence Control',                      #16+16 bits
           BitField('Segmentation Flags',2),
@@ -62,7 +63,7 @@ sub source_data_length {
 }
 
 #By default, we consider that Idle packets have no crc 
-my $has_crc= Value('Has Crc', sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'Apid'} != 2047 ? 1:0 } );
+my $has_crc= Value('Has Crc', sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1:0 } );
 
 our $TMSourcePacket = Struct('TM Source Packet',
   $TMSourcePacketHeader,

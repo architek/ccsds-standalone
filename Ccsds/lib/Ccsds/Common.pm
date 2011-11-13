@@ -16,7 +16,7 @@ our $Sat_Time = $::Sat_Time || CUC(3,3);
 
 our $Pid = Enum(
     BitField( 'PID', 7 ),
-      TIME        => 0x0,
+#      TIME        => 0x0,
       _default_   => $DefaultPass
 );
 

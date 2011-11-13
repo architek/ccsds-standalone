@@ -10,7 +10,6 @@ Ccsds::TC::SourcePacket - Decoding/Encoding of TC Source Packets
 =cut
 
 use Data::ParseBinary;
-
 use Ccsds::Common;
 
 #TODO Customization (does CCSDS allows custo of this header? Probably for example encryption header)
@@ -31,7 +30,8 @@ our $TCPacketHeader = Struct('Packet Header',
     BitField('Version Number',3),
     BitField('Type',1),
     Flag('DFH Flag'),
-    $Apid
+    $Apid,
+    Value('vApid', sub { 16 * $_->ctx->{Apid}->{PID} + $_->ctx->{Apid}->{Pcat} } ),
   ),
   BitStruct('Packet Sequence Control',
     BitField('Segmentation Flags',2),

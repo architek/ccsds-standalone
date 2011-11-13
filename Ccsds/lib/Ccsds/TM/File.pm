@@ -59,7 +59,7 @@ sub try_decode_pkt {
 }
 
 #Search a sync in file and if yes go back by an offset (relating to first byte after sync)
-#This is not very io efficient 
+#This is not very io efficient
 sub search_sync {
     use Fcntl "SEEK_CUR";
     my ($file,$offset)=@_;
@@ -114,11 +114,12 @@ FRAME_DECODE:
 
         $frame_nr++;
         #Extract frame from record
+        my $rec_head=substr $raw , 0 , $config->{offset_data};
         $raw=substr $raw , $config->{offset_data} , $config->{frame_len};
         #Parse frame
 	    my $tmframe = $TMFrame->parse( $raw );
         #Execute coderefs
-        $_->($tmframe, $raw) for @{ $config->{coderefs_frame} };
+        $_->($tmframe, $raw, $rec_head) for @{ $config->{coderefs_frame} };
 	    #Remove CLCW
 	    $raw = substr $raw,0,-4;
 	

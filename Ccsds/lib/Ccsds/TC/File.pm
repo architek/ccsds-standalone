@@ -74,7 +74,7 @@ sub read_frames {
     
     my $cltu_data = rs_deintbin( 7, $buf, $cltu->{'TC Frame Header'}->{'Frame Length'} + 1 ); #We use BCH Length 7
 #we now have CLTU *data* , BCH removed
-    $_->($cltu_data, $rec_head) for @{ $config->{coderefs_cltu} };
+    $_->($cltu,$cltu_data, $rec_head) for @{ $config->{coderefs_cltu} };
     
 #State Machine for Segment handling
     my $seqf = $cltu->{'Segment Header'}->{'Sequence Flags'};

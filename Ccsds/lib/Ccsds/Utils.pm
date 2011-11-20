@@ -83,7 +83,7 @@ sub rs_deintbin {
 sub hdump {
     my $offset = 0;
     my(@array,$format,$res);
-    my $ascii=$_[1]||0;
+    my $ascii=$_[1]//0;
     foreach my $data (unpack("a64"x(length($_[0])/64)."a*",$_[0])) {
         my $len = length($data);
         if ($len == 64) {

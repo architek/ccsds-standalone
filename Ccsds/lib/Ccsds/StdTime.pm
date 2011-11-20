@@ -36,7 +36,7 @@ my $p_Field= BitStruct('P-Field',
 sub CDS {
     my ($day_size,$milli_size,$epoch)=@_;
     # default CCSDS Epoch: 1/1/1958
-    $epoch ||= 1958;
+    $epoch //= 1958;
     if ($day_size==16 || $day_size==24 &&
         $milli_size==0 || $milli_size==16 || $milli_size==32) 
     { 

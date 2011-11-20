@@ -12,7 +12,7 @@ Ccsds::Common - Common Structures to TC and TM
 use Data::ParseBinary;
 use Ccsds::StdTime;
 
-our $Sat_Time = $::Sat_Time || CUC(3,3);
+our $Sat_Time = $::Sat_Time // CUC(3,3);
 
 our $Pid = Enum(
     BitField( 'PID', 7 ),

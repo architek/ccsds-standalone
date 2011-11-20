@@ -17,7 +17,7 @@ use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
 our $TMSourceSecondaryHeader = 
- $Ccsds::Custo::TMSourceSecondaryHeader || Struct('TMSourceSecondaryHeader',   ### 12 bytes
+ $Ccsds::Custo::TMSourceSecondaryHeader // Struct('TMSourceSecondaryHeader',   ### 12 bytes
   Value('Length',12),
   BitStruct('SecHeadFirstField',                                  #1 byte
     BitField('Spare1',1),
@@ -27,7 +27,7 @@ our $TMSourceSecondaryHeader =
   UBInt8('Service Type'),                                         #1 byte
   UBInt8('Service Subtype'),                                      #1 byte
   UBInt8('Destination Id'),                                       #1 byte
-  $Ccsds::Custo::Sat_Time || CUC(4,3),                            #7 bytes
+  $Ccsds::Custo::Sat_Time // CUC(4,3),                            #7 bytes
   UBInt8('Time Quality'),                                         #1 byte
 );
 
@@ -67,7 +67,7 @@ my $has_crc= Value('Has Crc', sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{
 
 our $TMSourcePacket = Struct('TM Source Packet',
   $TMSourcePacketHeader,
-  $Ccsds::Custo::has_crc || $has_crc ,
+  $Ccsds::Custo::has_crc // $has_crc ,
   Struct('Packet Data Field',
       If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} } ,
           $TMSourceSecondaryHeader,

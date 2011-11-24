@@ -83,7 +83,7 @@ sub read_frames {
     my $frame_nr = 0;
     my $vc;
     my $pkt_len;
-    my @packet_vcid = ("")x8;                               # VC 1..7
+    my @packet_vcid = ("")x8;                               # VC 0..7
 
     #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $| = 1 if  $config->{debug} >= 3;

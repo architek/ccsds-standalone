@@ -19,37 +19,41 @@ use Try::Tiny;
 #Crc Check: if crc of non idle packet is incorrect, display error message
 sub try_decode_pkt {
     my ($data,$config) = @_ ;
-    my ($pkt_len,$is_idle,$apid,$tmpacket,$tmpacketh,$ko);
-    $ko = 0;
+    my ($pkt_len,$is_idle,$apid,$tmpacket,$tmpacketh,$catch);
+    $catch = 0;
     
+    #Parse
     try { 
     #   \{
         $tmpacketh = $TMSourcePacketHeader->parse($data); 
-        $apid = $tmpacketh->{'Packet Id'}->{'Apid'};
-        $is_idle = $apid == 0b11111111111? 1:0; 
+        $apid = $tmpacketh->{'Packet Id'}->{'vApid'};
+        $is_idle = $apid == 0b11111111111? 1:0;
         $pkt_len = $tmpacketh->{'Packet Sequence Control'} ->{'Packet Length'} + 1 + 6;
         
         if ( $config->{debug} ) {
-            if ( $config->{idle_packets} == 1 || !$is_idle ) { 
+            if ( $config->{idle_packets} || !$is_idle ) { 
                 print CcsdsDump( $tmpacketh );
             }
         }
 
         $tmpacket = $TMSourcePacket->parse( $data );
-        if ( $config->{debug} >= 2 ) {
-            if ( $config->{idle_packets} == 1 || !$is_idle ) { 
+        if ( $config->{debug} and $config->{debug} >= 2 ) {
+            if ( $config->{idle_packets} || !$is_idle ) { 
                 print CcsdsDump( $tmpacket , $config->{ascii} ) ;
             }
         }
-    } catch { 
+    } catch {
         print "Undecoded packet\n" if $config->{debug} >= 3;
-        $ko = 1;
+        $catch = 1;
     };
-    return 0 if $ko;
+    return 0 if $catch;
 
-    print "Decoded packet\n" if $config->{debug} >= 3;
     #Execute coderefs
-    $_->($tmpacket, $data) for @{ $config->{coderefs_packet} };
+    for ( @{ $config->{coderefs_packet} } ) {
+        if ($config->{idle_packets} || !$is_idle) {
+            $_->($tmpacket, $data);
+        }
+    }
     #We got a complete packet, verify CRC
     if ( $tmpacket->{'Has Crc'}  && ! tm_verify_crc( unpack 'H*',substr ( $data, 0, $pkt_len ) ) ) { 
         warn "CRC of packet does not match\n" ; 

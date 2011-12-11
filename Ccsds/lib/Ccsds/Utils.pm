@@ -115,7 +115,8 @@ sub get_orders {
 #TM Packet
 ['Packet Header','Has Crc', 'Packet Data Field'],      #Packet
  [ "Packet Id", "Packet Sequence Control" ],   # PacketHeader
-  [ "Version Number","Type","DFH Flag","Apid" ], #PacketId
+  [ "Version Number","Type","DFH Flag","vApid","Apid" ], #PacketId
+   [ "PID","Pcat"], #Apid
   [ "Segmentation Flags","Source Seq Count","Packet Length" ], # Packet Sequence Control
  ['TMSourceSecondaryHeader','Source Data','Packet Error Control'], # Packet Data Field
   [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time', 'Time Quality'],  # S3

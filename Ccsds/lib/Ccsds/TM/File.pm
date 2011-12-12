@@ -37,8 +37,7 @@ sub _try_decode_pkt {
         $tmpacket = $TMSourcePacket->parse($data);
 
         print CcsdsDump( $tmpacket, $config->{ascii} )
-          if (  $config->{debug}
-            and $config->{debug} >= 2
+          if ( $config->{debug} >= 2
             and ( $config->{idle_packets} or !$is_idle ) );
     }
     catch {
@@ -49,7 +48,7 @@ sub _try_decode_pkt {
 
     #Execute coderefs
     for ( @{ $config->{coderefs_packet} } ) {
-        if ( $config->{idle_packets} || !$is_idle ) {
+        if ( $config->{idle_packets} or !$is_idle ) {
             $_->( $tmpacket, $data );
         }
     }
@@ -92,6 +91,7 @@ sub read_frames {
     my @packet_vcid = ("") x 8;    # VC 0..7
 
 #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
+    $config->{debug} = 0 unless exists $config->{debug};
     $| = 1 if $config->{debug} >= 3;
 
     open my $fin, "<", $filename or die "can not open $filename";

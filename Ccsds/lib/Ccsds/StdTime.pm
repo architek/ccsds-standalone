@@ -13,78 +13,93 @@ use Data::ParseBinary;
 use DateTime;
 
 sub dayCDS {
-    my ($day_size)=@_;
-    return $day_size==16 ? 
-            UBInt16('DoE'):               # 16 bits
-            Array( 3, UBInt8('bDoE') );   # 24 bits
+    my ($day_size) = @_;
+    return $day_size == 16 ? UBInt16('DoE') :    # 16 bits
+      Array( 3, UBInt8('bDoE') );                # 24 bits
 }
 
 sub subMilliCDS {
-    my ($milli_size)=@_;
-    return $milli_size==16 ?
-            UBInt16('Mic'):
-            UBInt32('Pic');
+    my ($milli_size) = @_;
+    return $milli_size == 16
+      ? UBInt16('Mic')
+      : UBInt32('Pic');
 }
 
-my $p_Field= BitStruct('P-Field',
-    Flag('Extension'),
-    BitField('Time Code Id',3),
-    BitField('Detail Bits',4),
+my $p_Field = BitStruct(
+    'P-Field', Flag('Extension'),
+    BitField( 'Time Code Id', 3 ),
+    BitField( 'Detail Bits',  4 ),
 );
 
 #TODO Finish case $milli_size=0 (no 3rd field)
 sub CDS {
-    my ($day_size,$milli_size,$epoch)=@_;
+    my ( $day_size, $milli_size, $epoch ) = @_;
+
     # default CCSDS Epoch: 1/1/1958
     $epoch //= 1958;
-    if ($day_size==16 || $day_size==24 &&
-        $milli_size==0 || $milli_size==16 || $milli_size==32) 
-    { 
-        return Struct('Sat_Time', 
-                            dayCDS($day_size),
-                            UBInt32('Mil'),
-                            subMilliCDS($milli_size),
-                            Value('OBT',
-								sub {
-								    my $day_num;
-								    if ($day_size == 16) {
-								        $day_num=$_->ctx->{'DoE'};
-								    } else {
-                                    #Calculate out of 24 bits
-								        my $k=256**2;
-								        map { $day_num+=$k*$_; $k/=256; } @{ $_->ctx->{'bDoE'} };
-								    }
+    if (   $day_size == 16
+        || $day_size == 24 && $milli_size == 0
+        || $milli_size == 16
+        || $milli_size == 32 )
+    {
+        return Struct(
+            'Sat_Time',
+            dayCDS($day_size),
+            UBInt32('Mil'),
+            subMilliCDS($milli_size),
+            Value(
+                'OBT',
+                sub {
+                    my $day_num;
+                    if ( $day_size == 16 ) {
+                        $day_num = $_->ctx->{'DoE'};
+                    }
+                    else {
 
-                                    #calculate subsecond details
-								    my $s=int($_->ctx->{'Mil'}/1000); 
-								    my $ms=$_->ctx->{'Mil'}-$s*1000;
-								    my $obt = DateTime->new(year=>$epoch)->add(days=>$day_num)->add(seconds=>$s);
-                                    return 
-                                        ($milli_size==0 ) ? sprintf ("%s.%03d", $obt, $ms) :
-                                        ($milli_size==16) ? sprintf ("%s.%03d%03d", $obt, $ms, $_->ctx->{'Mic'}) :
-								        sprintf ("%s.%03d%06d", $obt, $ms, $_->ctx->{'Pic'} );
-								}
-                            )
-                    );
-    } else { 
-        die "Values $day_size and $milli_size not allowed for CDS form of CCSDS standard"; 
+                        #Calculate out of 24 bits
+                        my $k = 256**2;
+                        map { $day_num += $k * $_; $k /= 256; }
+                          @{ $_->ctx->{'bDoE'} };
+                    }
+
+                    #calculate subsecond details
+                    my $s  = int( $_->ctx->{'Mil'} / 1000 );
+                    my $ms = $_->ctx->{'Mil'} - $s * 1000;
+                    my $obt =
+                      DateTime->new( year => $epoch )->add( days => $day_num )
+                      ->add( seconds => $s );
+                    return ( $milli_size == 0 )
+                      ? sprintf( "%s.%03d", $obt, $ms )
+                      : ( $milli_size == 16 )
+                      ? sprintf( "%s.%03d%03d", $obt, $ms, $_->ctx->{'Mic'} )
+                      : sprintf( "%s.%03d%06d", $obt, $ms, $_->ctx->{'Pic'} );
+                }
+            )
+        );
+    }
+    else {
+        die
+"Values $day_size and $milli_size not allowed for CDS form of CCSDS standard";
         return undef;
     }
 }
 
 sub CUC {
-    my ($ct,$ft)=@_;
-    return Struct('Sat_Time', 
-                Array( $ct, UBInt8("CUC Coarse") ),
-                Array( $ft, UBInt8("CUC Fine") ),
-                Value( "OBT", 
-                    sub { 
-                        my ($s, $k)=(0, 256**($ct-1) );
-                        map { $s+=$k*$_; $k/=256; } ( @{ $_->ctx->{"CUC Coarse"} } , @{ $_->ctx->{"CUC Fine"} } );
-                        return $s;
-                    }
-                )
-           );
+    my ( $ct, $ft ) = @_;
+    return Struct(
+        'Sat_Time',
+        Array( $ct, UBInt8("CUC Coarse") ),
+        Array( $ft, UBInt8("CUC Fine") ),
+        Value(
+            "OBT",
+            sub {
+                my ( $s, $k ) = ( 0, 256**( $ct - 1 ) );
+                map { $s += $k * $_; $k /= 256; }
+                  ( @{ $_->ctx->{"CUC Coarse"} }, @{ $_->ctx->{"CUC Fine"} } );
+                return $s;
+            }
+        )
+    );
 }
 
 require Exporter;

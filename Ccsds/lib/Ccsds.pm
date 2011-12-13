@@ -12,7 +12,7 @@ Ccsds - Module used to decode or encode CCSDS TC/TM
 our $VERSION = '2.3';
 
 require Exporter;
-our @ISA = qw(Exporter);
+our @ISA    = qw(Exporter);
 our @EXPORT = qw($VERSION);
 
 =head1 SYNOPSIS
@@ -78,4 +78,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Ccsds
+1;    # End of Ccsds

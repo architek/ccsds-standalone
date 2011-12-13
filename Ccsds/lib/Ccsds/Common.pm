@@ -12,19 +12,16 @@ Ccsds::Common - Common Structures to TC and TM
 use Data::ParseBinary;
 use Ccsds::StdTime;
 
-our $Sat_Time = $::Sat_Time // CUC(3,3);
+our $Sat_Time = $::Sat_Time // CUC( 3, 3 );
 
 our $Pid = Enum(
     BitField( 'PID', 7 ),
-#      TIME        => 0x0,
-      _default_   => $DefaultPass
+
+    #      TIME        => 0x0,
+    _default_ => $DefaultPass
 );
 
-our $Apid = BitStruct('Apid',
-  $Pid,
-  Nibble('Pcat')
-);
-
+our $Apid = BitStruct( 'Apid', $Pid, Nibble('Pcat') );
 
 require Exporter;
 our @ISA    = qw(Exporter);

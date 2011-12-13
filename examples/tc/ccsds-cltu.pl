@@ -5,8 +5,7 @@ use strict;
 use warnings;
 use Ccsds::TC::File;
 
-my $config = { debug => 0 };
 die "You need to provide a logfile" unless $ARGV[0];
 
-my $nf = read_frames( $ARGV[0], $config );
+my $nf = read_frames( $ARGV[0], {} );
 print "Read $nf frames\n";

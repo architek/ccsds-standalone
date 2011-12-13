@@ -10,11 +10,10 @@ use warnings;
 
 use Data::Dumper;
 use Ccsds::Utils qw(verify_crc tm_verify_crc patch_crc);
-use Ccsds::TM::SourcePacket
-  qw($TMSourcePacket $ScosTMSourcePacket);
+use Ccsds::TM::SourcePacket qw($TMSourcePacket $ScosTMSourcePacket);
 use Ccsds::TC::SourcePacket qw($TCSourcePacket);
 
-$/ = '';                       # paragraph reads
+$/ = '';    # paragraph reads
 my $nblocks = 0;
 while (<STDIN>) {
     chomp;
@@ -23,8 +22,9 @@ while (<STDIN>) {
     my $pstring = ();
     $nblocks++;
 
-    #Sanity check on input 
-    die("There are non ASCII characters in your input\n") unless /^[[:ascii:]]*$/;
+    #Sanity check on input
+    die("There are non ASCII characters in your input\n")
+      unless /^[[:ascii:]]*$/;
 
     #If input is simple: no header, no space then proceed to decoding
     $buf = $_, goto DECODE if (/^[[:xdigit:]]*$/);
@@ -35,13 +35,13 @@ while (<STDIN>) {
     my $line = ();
     foreach (@lines) {
         next if /^#/;
+
         #Is everything on one line, without header and spaces
         s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
         $line = $1;
         $line =~ s/ //g;
         $buf .= $line;
     }
-
 
   DECODE:
     $pstring = pack( qq{H*}, qq{$buf} );
@@ -66,6 +66,7 @@ while (<STDIN>) {
     my $header = $decoded->{'Packet Header'};
     my $dataf  = $decoded->{'Packet Data Field'};
     my $data   = $dataf->{'Data Field'};
+
     #Return if packet contain no data (time packet,..)
     next unless defined($data);
 
@@ -91,29 +92,25 @@ while (<STDIN>) {
             my $Tc      = $cStep->{'TC Source Packet'};
             my $Tc_Data = $Tc->{'Packet Data Field'}->{'TC Data'};
 
-            if (
-                   $Tc_Data->[0] == 37
+            if (   $Tc_Data->[0] == 37
                 && $Tc_Data->[1] == 0
-                && $Tc_Data->[2] == 192
-              )
+                && $Tc_Data->[2] == 192 )
             {
-#                print "Old TC:" , @$Tc_Data , "\n";
+
+                #                print "Old TC:" , @$Tc_Data , "\n";
 
                 print " HLC in OBCP Found:\n Delay: $cDelay\n";
 
                 #Modify TC included
-                $Tc_Data->[3]--;           # Patch HLC Number
-                                           #Rebuild TC
+                $Tc_Data->[3]--;    # Patch HLC Number
+                                    #Rebuild TC
                 my $mTC = $TCSourcePacket->build($Tc);
-                patch_crc(\$mTC);
+                patch_crc( \$mTC );
 
                 print " New TC:", unpack( 'H*', $mTC ), "\n";
             }
         }
     }
-
-
-
 
     print "/>\n";
 }

@@ -11,42 +11,47 @@ Ccsds::TM::Frame - Decoding/Encoding of TM Frame
 
 use Data::ParseBinary;
 
-our $TMFrameHeader= BitStruct('TM Frame Header', #6 bytes
-    BitField('Version Number Frame',2),         #16 bits
-    BitField('SpaceCraftId',10),
-    BitField('Virtual Channel Id',3),           
-    BitField('Operation Flag',1),                 
-    UBInt8('Master Channel Frame Count'),       #1 byte
-    UBInt8('Virtual Channel Frame Count'),      #1 byte
-    BitField('Sec Header',1),                   #16 bits
-    BitField('Sync Flag',1),
-    BitField('Packet Order Flag',1),
-    BitField('Segment Length Id',2),
-    BitField('First Header Pointer',11), 
+our $TMFrameHeader = BitStruct(
+    'TM Frame Header',    #6 bytes
+    BitField( 'Version Number Frame', 2 ),    #16 bits
+    BitField( 'SpaceCraftId',         10 ),
+    BitField( 'Virtual Channel Id',   3 ),
+    BitField( 'Operation Flag',       1 ),
+    UBInt8('Master Channel Frame Count'),     #1 byte
+    UBInt8('Virtual Channel Frame Count'),    #1 byte
+    BitField( 'Sec Header',           1 ),    #16 bits
+    BitField( 'Sync Flag',            1 ),
+    BitField( 'Packet Order Flag',    1 ),
+    BitField( 'Segment Length Id',    2 ),
+    BitField( 'First Header Pointer', 11 ),
 );
 
-my $TMFrameSecondaryHeader = BitStruct('TM Frame Secondary Header',
-    BitField('Sec Header Version',2),
-    BitField('Sec Header Length',6),
-    Array(sub { $_->ctx->{'Sec Header Length'}-1 }, UBInt8('Data'))
+my $TMFrameSecondaryHeader = BitStruct(
+    'TM Frame Secondary Header',
+    BitField( 'Sec Header Version', 2 ),
+    BitField( 'Sec Header Length',  6 ),
+    Array( sub { $_->ctx->{'Sec Header Length'} - 1 }, UBInt8('Data') )
 );
 
-#TODO if Operation Flag is 0, no CLCW 
+#TODO if Operation Flag is 0, no CLCW
 #TODO Decode CLCW
 #TODO customization for FEC
 #TODO customization for Frame length
-our $TMFrame= Struct('TMFrame',
+our $TMFrame = Struct(
+    'TMFrame',
     $TMFrameHeader,
-    If ( sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'}}, 
-	    $TMFrameSecondaryHeader
+    If(
+        sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'} },
+        $TMFrameSecondaryHeader
     ),
-    Array(1105,UBInt8('Data')),
-    UBInt32('CLCW'),   
+    Array( 1105, UBInt8('Data') ),
+    UBInt32('CLCW'),
+
     #UBInt16('FEC')
 );
 
 require Exporter;
-our @ISA = qw(Exporter);
+our @ISA    = qw(Exporter);
 our @EXPORT = qw($TMFrameHeader $TMFrame);
 
 =head1 SYNOPSIS
@@ -78,4 +83,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Ccsds::TM::Frame.pm
+1;    # End of Ccsds::TM::Frame.pm

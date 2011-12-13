@@ -19,11 +19,11 @@ use Ccsds::TC::Printer qw(TCPrint );
 
 my @tohex = ('Packet Error Control');
 
-our $odebug   = 0;             
-my  $odumper  = 0;
-my  $oshowver = 0;
+our $odebug = 0;
+my $odumper  = 0;
+my $oshowver = 0;
 
-my  $opts     = GetOptions(
+my $opts = GetOptions(
     'debug'   => \$odebug,     # do we want debug
     'dumper'  => \$odumper,    # do we want to use tmprint or internal dumper
     'version' => \$oshowver
@@ -34,19 +34,21 @@ $Data::ParseBinary::print_debug_info = 1 if $odebug;
 
 $|++;                          # autoflush stdout
 
-my ( $nblocks, $nblocks_error, $is_tm) ;
+my ( $nblocks, $nblocks_error, $is_tm );
 while (<STDIN>) {
     next if /^\s+$/;
     chomp;
 
-    my ($decoded, $pstring);
-#print "Block " , ++$nblocks, "\n" if $odebug;
-    print "Block " , ++$nblocks, "\n" ;
-    
-    #Sanity check on input 
-    die("There are non ASCII characters in your input\n") unless /^[[:ascii:]]*$/;
+    my ( $decoded, $pstring );
 
-    #Remove extra chars ( left adress part "XXXX : data" ) unless there are only hex digits
+    #print "Block " , ++$nblocks, "\n" if $odebug;
+    print "Block ", ++$nblocks, "\n";
+
+    #Sanity check on input
+    die("There are non ASCII characters in your input\n")
+      unless /^[[:ascii:]]*$/;
+
+#Remove extra chars ( left adress part "XXXX : data" ) unless there are only hex digits
     s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/ unless (/^[[:xdigit:]]*$/);
     s/\s//g;
 
@@ -57,41 +59,45 @@ while (<STDIN>) {
     if ( tm_verify_crc $_) {
         eval q( $decoded = $TMSourcePacket->parse($pstring) );
         if ($@) {
-          $nblocks_error++;
-          print "TM ERROR : Undecoded TM? (But Crc is correct)\n$@\n";
-          next;
+            $nblocks_error++;
+            print "TM ERROR : Undecoded TM? (But Crc is correct)\n$@\n";
+            next;
         }
-        $is_tm=1;
+        $is_tm = 1;
     }
     else {
+
         #Decode tc
         eval q( $decoded = $TCSourcePacket->parse($pstring) );
         if ($@) {
-          $nblocks_error++;
-          print "TC ERROR : Undecoded TC?\n$@\n";
-          next;
+            $nblocks_error++;
+            print "TC ERROR : Undecoded TC?\n$@\n";
+            next;
         }
-        $is_tm=0;
+        $is_tm = 0;
     }
 
     if ($odumper) {
+
         #Change fields to hex in the Dumper output
         my $dumper = Dumper($decoded);
         foreach (@tohex) {
-           $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
-           my $hv = sprintf( "%#x", $1 );
-           $dumper =~ s/$1/$hv/;
-           }
+            $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
+            my $hv = sprintf( "%#x", $1 );
+            $dumper =~ s/$1/$hv/;
+        }
         print $dumper;
     }
     else {
         if ($is_tm) {
-          TMPrint($decoded)
-        } else { 
-          TCPrint($decoded);
+            TMPrint($decoded);
+        }
+        else {
+            TCPrint($decoded);
         }
     }
 
     print "/>\n";
 }
-print "Total TMTC Decoded: $nblocks, Total TMTC in error : $nblocks_error\n" if $odebug;
+print "Total TMTC Decoded: $nblocks, Total TMTC in error : $nblocks_error\n"
+  if $odebug;

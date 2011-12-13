@@ -11,43 +11,55 @@ Ccsds::TC::Frame - Decoding/Encoding of TC Frame
 
 use Data::ParseBinary;
 
-our $TCFrameHeader= BitStruct('TC Frame Header',
-    BitField('Version Number Frame',2),         #16 bits
-    BitField('ByPass',1),
-    BitField('Control Command Flag',1),
-    BitField('Spare',2),
-    BitField('SpaceCraftId',10),
-    BitField('Virtual Channel Id',6),           #16 bits
-    BitField('Frame Length',10), 
-    UBInt8('Frame Sequence Number'),            #8 bits
+our $TCFrameHeader = BitStruct(
+    'TC Frame Header',
+    BitField( 'Version Number Frame', 2 ),    #16 bits
+    BitField( 'ByPass',               1 ),
+    BitField( 'Control Command Flag', 1 ),
+    BitField( 'Spare',                2 ),
+    BitField( 'SpaceCraftId',         10 ),
+    BitField( 'Virtual Channel Id',   6 ),    #16 bits
+    BitField( 'Frame Length',         10 ),
+    UBInt8('Frame Sequence Number'),          #8 bits
 
     #Length of the CLTU = 10 + ((Total length of the Frames + 6) / 7) * 8
-    Value('Cltu Length', sub { 10 + int( ($_->ctx->{'Frame Length'} +1 + 6 )/7)*8 }),
+    Value(
+        'Cltu Length',
+        sub { 10 + int( ( $_->ctx->{'Frame Length'} + 1 + 6 ) / 7 ) * 8 }
+    ),
 );
 
-our $TCFrame= Struct('TCFrame',
-    $TCFrameHeader, 
-    Array(sub { $_->ctx->{'TC Frame Header'}->{'Frame Length'} }, UBInt8('TC Frame Data')),
+our $TCFrame = Struct(
+    'TCFrame',
+    $TCFrameHeader,
+    Array(
+        sub { $_->ctx->{'TC Frame Header'}->{'Frame Length'} },
+        UBInt8('TC Frame Data')
+    ),
     UBInt16('Frame Error Control'),
 );
 
-our $TCSegmentHeader = BitStruct('Segment Header',
-      BitField('Sequence Flags',2),
-      BitField('MapId',6),
+our $TCSegmentHeader = BitStruct(
+    'Segment Header',
+    BitField( 'Sequence Flags', 2 ),
+    BitField( 'MapId',          6 ),
 );
 
 #TODO add customization: CBH depth and TCFrame Header length (is this customizable?)
-our $Cltu= Struct('Cltu',
+our $Cltu = Struct(
+    'Cltu',
     Magic("\xEB\x90"),
     $TCFrameHeader,
     $TCSegmentHeader,
-    Array(sub { $_->ctx->{'TC Frame Header'}->{'Cltu Length'} - 2 - 5 - 1 }, UBInt8('Cltu Data')),
+    Array(
+        sub { $_->ctx->{'TC Frame Header'}->{'Cltu Length'} - 2 - 5 - 1 },
+        UBInt8('Cltu Data')
+    ),
 
 );
 
-
 require Exporter;
-our @ISA = qw(Exporter);
+our @ISA    = qw(Exporter);
 our @EXPORT = qw($TCFrameHeader $TCFrame $TCSegmentHeader $Cltu);
 
 =head1 SYNOPSIS
@@ -88,4 +100,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Ccsds::TC::Frame.pm
+1;    # End of Ccsds::TC::Frame.pm

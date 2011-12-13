@@ -9,18 +9,17 @@ use Getopt::Long;
 use Data::Dumper;
 use Ccsds qw($VERSION);
 use Ccsds::Utils qw(verify_crc tm_verify_crc);
-use Ccsds::TM::SourcePacket
-  qw($TMSourcePacket $ScosTMSourcePacket);
+use Ccsds::TM::SourcePacket qw($TMSourcePacket $ScosTMSourcePacket);
 use Ccsds::TM::Printer qw(TMPrint);
 
 #Fields to convert in hex if dumper is used
 my @tohex = ('Packet Error Control');
 
-our $odebug   = 0;             
+our $odebug = 0;
 my $odumper  = 0;
 my $oshowver = 0;
 
-my $opts     = GetOptions(
+my $opts = GetOptions(
     'debug'   => \$odebug,     # do we want debug
     'dumper'  => \$odumper,    # do we want to use tmprint or internal dumper
     'version' => \$oshowver
@@ -39,8 +38,9 @@ while (<STDIN>) {
     $nblocks++;
     print "BUF IS <$_>\n" if $odebug;
 
-    #Sanity check on input 
-    die("There are non ASCII characters in your input\n") unless /^[[:ascii:]]*$/;
+    #Sanity check on input
+    die("There are non ASCII characters in your input\n")
+      unless /^[[:ascii:]]*$/;
 
     #If input is simple: no header, no space then proceed to decoding
     $buf = $_, goto DECODE if (/^[[:xdigit:]]*$/);
@@ -51,6 +51,7 @@ while (<STDIN>) {
     my $line = ();
     foreach (@lines) {
         next if /^#/;
+
         #Is everything on one line, without header and spaces
         s/^[[:xdigit:]]+[^[:xdigit:]]+(.+)$/$1/;
         $line = $1;
@@ -58,7 +59,6 @@ while (<STDIN>) {
         $buf .= $line;
     }
     print "BUF IS <$buf>\n" if $odebug;
-
 
   DECODE:
     $pstring = pack( qq{H*}, qq{$buf} );
@@ -80,13 +80,14 @@ while (<STDIN>) {
     }
 
     if ($odumper) {
+
         #Change fields to hex in the Dumper output
         my $dumper = Dumper($decoded);
         foreach (@tohex) {
-           $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
-           my $hv = sprintf( "%#x", $1 );
-           $dumper =~ s/$1/$hv/;
-           }
+            $dumper =~ m/$_.*=>\s([[:alnum:]]*),/;
+            my $hv = sprintf( "%#x", $1 );
+            $dumper =~ s/$1/$hv/;
+        }
         print $dumper;
     }
     else {

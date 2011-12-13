@@ -16,77 +16,96 @@ use Ccsds::StdTime;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-our $TMSourceSecondaryHeader = 
- $Ccsds::Custo::TMSourceSecondaryHeader // Struct('TMSourceSecondaryHeader',   ### 12 bytes
-  Value('Length',12),
-  BitStruct('SecHeadFirstField',                                  #1 byte
-    BitField('Spare1',1),
-    BitField('PUS Version Number',3),
-    Nibble('Spare2')
-  ),
-  UBInt8('Service Type'),                                         #1 byte
-  UBInt8('Service Subtype'),                                      #1 byte
-  UBInt8('Destination Id'),                                       #1 byte
-  $Ccsds::Custo::Sat_Time // CUC(4,3),                            #7 bytes
-  UBInt8('Time Quality'),                                         #1 byte
+our $TMSourceSecondaryHeader = $Ccsds::Custo::TMSourceSecondaryHeader // Struct(
+    'TMSourceSecondaryHeader',    ### 12 bytes
+    Value( 'Length', 12 ),
+    BitStruct(
+        'SecHeadFirstField',      #1 byte
+        BitField( 'Spare1',             1 ),
+        BitField( 'PUS Version Number', 3 ),
+        Nibble('Spare2')
+    ),
+    UBInt8('Service Type'),       #1 byte
+    UBInt8('Service Subtype'),    #1 byte
+    UBInt8('Destination Id'),     #1 byte
+    $Ccsds::Custo::Sat_Time // CUC( 4, 3 ),    #7 bytes
+    UBInt8('Time Quality'),                    #1 byte
 );
 
 #Exported in case for detecting non data packets: time, idle
-our $TMSourcePacketHeader=
-  Struct('Packet Header',                                                       ### 6 bytes
-        BitStruct('Packet Id',                                    #5+11 bits
-          BitField('Version Number',3),
-          BitField('Type',1),
-          Flag('DFH Flag'),
-          $Apid,
-          Value('vApid', sub { 16 * $_->ctx->{Apid}->{PID} + $_->ctx->{Apid}->{Pcat} } ),
+our $TMSourcePacketHeader = Struct(
+    'Packet Header',                           ### 6 bytes
+    BitStruct(
+        'Packet Id',                           #5+11 bits
+        BitField( 'Version Number', 3 ),
+        BitField( 'Type',           1 ),
+        Flag('DFH Flag'),
+        $Apid,
+        Value(
+            'vApid',
+            sub { 16 * $_->ctx->{Apid}->{PID} + $_->ctx->{Apid}->{Pcat} }
         ),
-        BitStruct('Packet Sequence Control',                      #16+16 bits
-          BitField('Segmentation Flags',2),
-          BitField('Source Seq Count',14),
-          UBInt16('Packet Length'),
-        )
+    ),
+    BitStruct(
+        'Packet Sequence Control',             #16+16 bits
+        BitField( 'Segmentation Flags', 2 ),
+        BitField( 'Source Seq Count',   14 ),
+        UBInt16('Packet Length'),
+    )
 );
 
 sub source_data_length {
     my $sdl;
-    $sdl= 1 + $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}->{'Packet Length'} ;
+    $sdl =
+      1 +
+      $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}
+      ->{'Packet Length'};
 
     #16 Bits CRC
     $sdl -= 2 if ( $_->ctx(1)->{'Has Crc'} );
 
     #DataField Header?
     if ( $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} ) {
-        $sdl -= $_->ctx->{'TMSourceSecondaryHeader'}->{'Length'} ;
+        $sdl -= $_->ctx->{'TMSourceSecondaryHeader'}->{'Length'};
     }
     return $sdl;
 }
 
-#By default, we consider that Idle packets have no crc 
-my $has_crc= Value('Has Crc', sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1:0 } );
-
-our $TMSourcePacket = Struct('TM Source Packet',
-  $TMSourcePacketHeader,
-  $Ccsds::Custo::has_crc // $has_crc ,
-  Struct('Packet Data Field',
-      If ( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} } ,
-          $TMSourceSecondaryHeader,
-      ),
-      Array(\&source_data_length,UBInt8('Source Data')),
-      If ( sub { $_->ctx(1)->{'Has Crc'} } ,          #Can be optionnal, overriden by caller
-          UBInt16('Packet Error Control')
-      ),
-  ),
+#By default, we consider that Idle packets have no crc
+my $has_crc = Value(
+    'Has Crc',
+    sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1 : 0 }
 );
 
-our $ScosTMSourcePacket = Struct('Scos TM Source Packet',
-  Array(20,UBInt8('Scos Header')),
-  $TMSourcePacket
+our $TMSourcePacket = Struct(
+    'TM Source Packet',
+    $TMSourcePacketHeader,
+    $Ccsds::Custo::has_crc // $has_crc,
+    Struct(
+        'Packet Data Field',
+        If(
+            sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
+            $TMSourceSecondaryHeader,
+        ),
+        Array( \&source_data_length, UBInt8('Source Data') ),
+        If(
+            sub { $_->ctx(1)->{'Has Crc'} }
+            ,    #Can be optionnal, overriden by caller
+            UBInt16('Packet Error Control')
+        ),
+    ),
+);
+
+our $ScosTMSourcePacket = Struct(
+    'Scos TM Source Packet',
+    Array( 20, UBInt8('Scos Header') ),
+    $TMSourcePacket
 );
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader $ScosTMSourcePacket);
+our @EXPORT =
+  qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader $ScosTMSourcePacket);
 
 =head1 SYNOPSIS
 
@@ -136,4 +155,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Ccsds::TM::SourcePacket
+1;    # End of Ccsds::TM::SourcePacket

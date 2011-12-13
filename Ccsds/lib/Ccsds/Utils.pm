@@ -118,73 +118,39 @@ sub hdump {
 #This is used as key ordering for hashes when printing Ccsds structures using Data::Dumper
 #TODO TCs
 sub get_orders {
-    my ($hash) = @_;
-    my $orders = [
+    my ($hash)=@_;
+    my $orders= [ 
+#TM Packet
+['Packet Header','Has Crc', 'Packet Data Field'],      #Packet
+ [ "Packet Id", "Packet Sequence Control" ],   # PacketHeader
+  [ "Version Number","Type","DFH Flag","vApid","Apid" ], #PacketId
+   [ "PID","Pcat"], #Apid
+  [ "Segmentation Flags","Source Seq Count","Packet Length" ], # Packet Sequence Control
+ ['TMSourceSecondaryHeader','Source Data','Packet Error Control'], # Packet Data Field
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time', 'Time Quality'],  # S3
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype', 'Destination Id', 'Sat_Time' ],  # GIO
+  [ 'Length', 'SecHeadFirstField',  'Service Type','Service Subtype',                   'Sat_Time', 'Sync Status' ],  # SW
+   [ 'Spare1','PUS Version Number','Spare2' ],    # SecHead First Field
 
-        #TM Packet
-        [ 'Packet Header', 'Has Crc', 'Packet Data Field' ],    #Packet
-        [ "Packet Id", "Packet Sequence Control" ],             # PacketHeader
-        [ "Version Number", "Type", "DFH Flag", "vApid", "Apid" ],    #PacketId
-        [ "PID",            "Pcat" ],                                 #Apid
-        [ "Segmentation Flags", "Source Seq Count", "Packet Length" ]
-        ,    # Packet Sequence Control
-        [ 'TMSourceSecondaryHeader', 'Source Data', 'Packet Error Control' ]
-        ,    # Packet Data Field
-        [
-            'Length',
-            'SecHeadFirstField',
-            'Service Type',
-            'Service Subtype',
-            'Destination Id',
-            'Sat_Time',
-            'Time Quality'
-        ],    # S3
-        [
-            'Length',         'SecHeadFirstField',
-            'Service Type',   'Service Subtype',
-            'Destination Id', 'Sat_Time'
-        ],    # GIO
-        [
-            'Length',       'SecHeadFirstField',
-            'Service Type', 'Service Subtype',
-            'Sat_Time',     'Sync Status'
-        ],    # SW
-        [ 'Spare1', 'PUS Version Number', 'Spare2' ],    # SecHead First Field
+#TM Frame
+['TM Frame Header','TM Frame Secondary Header',	'Data', 'CLCW'], # Frame
+ ['Version Number Frame', 'SpaceCraftId', 'Virtual Channel Id', 'Operation Flag','Master Channel Frame Count','Virtual Channel Frame Count', 
+ 'Sec Header', 'Sync Flag','Packet Order Flag','Segment Length Id','First Header Pointer' ],   #FrameHeader
+ ['Sec Header Version', 'Sec Header Length','Data'],       # FrameSecHeader
 
-        #TM Frame
-        [ 'TM Frame Header', 'TM Frame Secondary Header', 'Data', 'CLCW' ]
-        ,                                                # Frame
-        [
-            'Version Number Frame',
-            'SpaceCraftId',
-            'Virtual Channel Id',
-            'Operation Flag',
-            'Master Channel Frame Count',
-            'Virtual Channel Frame Count',
-            'Sec Header',
-            'Sync Flag',
-            'Packet Order Flag',
-            'Segment Length Id',
-            'First Header Pointer'
-        ],    #FrameHeader
-        [ 'Sec Header Version', 'Sec Header Length', 'Data' ],  # FrameSecHeader
-
-        [ 'OBT', 'DoE',  'Mil', 'Mic' ],    #CDS time with Microseconds
-        [ 'OBT', 'DoE',  'Mil', 'Pic' ],    #CDS time with Picoseconds
-        [ 'OBT', 'bDoE', 'Mil', 'Mic' ]
-        ,    #CDS time with Microseconds and day of Epoch on 24bits
-        [ 'OBT', 'bDoE', 'Mil', 'Pic' ]
-        ,    #CDS time with Picoseconds and day of Epoch on 24bits
-        [ 'OBT', 'CUC Coarse', 'CUC Fine' ],      #CUC
-        [ 'OBT', 'Seconds',    'SubSeconds' ],    #Equivalent of CUC
-    ];
+ ['OBT','DoE','Mil','Mic'],           #CDS time with Microseconds
+ ['OBT','DoE','Mil','Pic'],           #CDS time with Picoseconds
+ ['OBT','bDoE','Mil','Mic'],          #CDS time with Microseconds and day of Epoch on 24bits
+ ['OBT','bDoE','Mil','Pic'],          #CDS time with Picoseconds and day of Epoch on 24bits
+ ['OBT','CUC Coarse','CUC Fine'],     #CUC
+ ['OBT','Seconds','SubSeconds'],      #Equivalent of CUC
+];
     for (@$orders) {
-        my %a = map { $_ => 1 } @$_;  # generate a hash from the array reference
-        return $_
-          if ( %a ~~ %$hash );    # return array if keys match the given hash
+        my %a=map { $_ => 1 } @$_;    # generate a hash from the array reference
+        return $_ if (%a ~~ %$hash);  # return array if keys match the given hash
     }
-    warn "Sorting alphabetical keys:", join( ',', keys %$hash ), ".\n";
-    return [ ( sort keys %$hash ) ];
+    warn "Sorting alphabetical keys:", join (',', keys %$hash ) , ".\n";
+    return [ (sort keys %$hash) ];
 }
 
 #Debug dumper to print out Ccsds structures. It uses get_orders() to print keys in order

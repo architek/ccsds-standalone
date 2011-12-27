@@ -13,11 +13,11 @@ use Data::ParseBinary;
 use Ccsds::Common;
 
 #TODO Customization (does CCSDS allows custo of this header? Probably for example encryption header)
-our $TCSourceSecondaryHeader = Struct(
-    'TCSourceSecondaryHeader',    #32 bits
-    BitStruct(
-        'SecHeadFirstField', BitField( 'Spare1', 1 ),
-        BitField( 'PUS Version Number', 3 ), Nibble('TC Ack Flags')
+our $TCSourceSecondaryHeader = Struct( 'TCSourceSecondaryHeader',    #32 bits
+    BitStruct( 'SecHeadFirstField', 
+        BitField( 'Spare1', 1 ),
+        BitField( 'PUS Version Number', 3 ), 
+        Nibble('TC Ack Flags'),
     ),
     UBInt8('Service Type'),
     UBInt8('Service Subtype'),
@@ -27,48 +27,37 @@ our $TCSourceSecondaryHeader = Struct(
 #TODO Source Data Length depends on customization
 our $TCPacketHeader = Struct(
     'Packet Header',
-    BitStruct(
-        'Packet Id',
+    BitStruct( 'Packet Id',
         BitField( 'Version Number', 3 ),
         BitField( 'Type',           1 ),
         Flag('DFH Flag'),
         $Apid,
-        Value(
-            'vApid',
+        Value( 'vApid',
             sub { 16 * $_->ctx->{Apid}->{PID} + $_->ctx->{Apid}->{Pcat} }
-        ),
+            ),
     ),
-    BitStruct(
-        'Packet Sequence Control',
+    BitStruct( 'Packet Sequence Control',
         BitField( 'Segmentation Flags', 2 ),
         BitField( 'Source Seq Count',   14 ),
         UBInt16('Packet Length'),
-        Value(
-            'Source Data Length',
-            sub {
-                $_->ctx->{'Packet Length'} + 1 - 2 -
-                  4 * $_->ctx(1)->{'Packet Id'}->{'DFH Flag'};
-            }
-        ),
+        Value( 'Source Data Length',
+            sub { $_->ctx->{'Packet Length'} + 1 - 2 - 4 * $_->ctx(1)->{'Packet Id'}->{'DFH Flag'}; }
+            ),
     )
 );
 
-our $TCSourcePacket = Struct(
-    'TC Source Packet',
+our $TCSourcePacket = Struct( 'TC Source Packet',
     $TCPacketHeader,
-    Struct(
-        'Packet Data Field',
-        If(
-            sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
+    Struct( 'Packet Data Field',
+        If( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
             $TCSourceSecondaryHeader,
-        ),
+            ),
         Array(
             sub {
-                $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}
-                  ->{'Source Data Length'};
+                $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'} ->{'Source Data Length'};
             },
             UBInt8('TC Data')
-        ),
+            ),
         UBInt16('Packet Error Control'),
     )
 );

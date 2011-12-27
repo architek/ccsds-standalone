@@ -38,13 +38,11 @@ our $TMSourcePacketHeader = Struct( 'Packet Header',                           #
         BitField( 'Type',           1 ),
         Flag('DFH Flag'),
         $Apid,
-        Value(
-            'vApid',
+        Value( 'vApid',
             sub { 16 * $_->ctx->{Apid}->{PID} + $_->ctx->{Apid}->{Pcat} }
         ),
     ),
-    BitStruct(
-        'Packet Sequence Control',             #16+16 bits
+    BitStruct( 'Packet Sequence Control',             #16+16 bits
         BitField( 'Segmentation Flags', 2 ),
         BitField( 'Source Seq Count',   14 ),
         UBInt16('Packet Length'),

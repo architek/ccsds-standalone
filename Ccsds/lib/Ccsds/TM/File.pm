@@ -31,13 +31,14 @@ sub _try_decode_pkt {
         print "Undecoded header\n" if $config->{debug} >= 3;
         $catch = 1;
     };
-
     return 0 if $catch;
+
     $apid     = $tmpacketh->{'Packet Id'}->{'vApid'};
     $is_idle  = $apid == 0b11111111111 ? 1 : 0;
     $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
     return $pkt_len if $is_idle and !$config->{idle_packets};
     return 0 if $pkt_len > length($data);
+    
     warn CcsdsDump($tmpacketh)
        if $config->{debug} and ( $config->{idle_packets} or !$is_idle );
 

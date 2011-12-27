@@ -111,7 +111,8 @@ sub hdump {
         $offset += 64;
     }
     chomp $res;
-    return $res;
+    $res =~ s/\ *$//;
+    $res;
 }
 
 #Detect hash by its keys and return known order and if not, alphabetical

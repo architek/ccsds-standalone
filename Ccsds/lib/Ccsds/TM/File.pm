@@ -21,30 +21,40 @@ use Try::Tiny;
 sub _try_decode_pkt {
     my ( $data, $config ) = @_;
     my ( $pkt_len, $is_idle, $apid, $tmpacket, $tmpacketh, $catch );
-    $catch = 0;
-
-    #Parse
+    
+    #Header
     try {
+        $catch = 0;
         $tmpacketh = $TMSourcePacketHeader->parse($data);
-        $apid      = $tmpacketh->{'Packet Id'}->{'vApid'};
-        $is_idle   = $apid == 0b11111111111 ? 1 : 0;
-        $pkt_len =
-          $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
-
-        print CcsdsDump($tmpacketh)
-          if ( $config->{debug} and ( $config->{idle_packets} or !$is_idle ) );
-
-        $tmpacket = $TMSourcePacket->parse($data);
-
-        print CcsdsDump( $tmpacket, $config->{ascii} )
-          if ( $config->{debug} >= 2
-            and ( $config->{idle_packets} or !$is_idle ) );
     }
     catch {
+        print "Undecoded header\n" if $config->{debug} >= 3;
+        $catch = 1;
+    };
+
+    return 0 if $catch;
+    $apid     = $tmpacketh->{'Packet Id'}->{'vApid'};
+    $is_idle  = $apid == 0b11111111111 ? 1 : 0;
+    $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
+    return $pkt_len if $is_idle and !$config->{idle_packets};
+    return 0 if $pkt_len > length($data);
+    warn CcsdsDump($tmpacketh)
+       if $config->{debug} and ( $config->{idle_packets} or !$is_idle );
+
+    #Packet
+    try {
+        $catch=0;
+        $tmpacket = $TMSourcePacket->parse($data);
+    }
+    catch {
+        #This should not happen as we have enough bytes
         print "Undecoded packet\n" if $config->{debug} >= 3;
         $catch = 1;
     };
     return 0 if $catch;
+
+    print CcsdsDump( $tmpacket, $config->{ascii} )
+       if $config->{debug} >= 2 and ( $config->{idle_packets} or !$is_idle );
 
     #Execute coderefs
     for ( @{ $config->{coderefs_packet} } ) {
@@ -92,6 +102,7 @@ sub read_frames {
 
 #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $config->{debug} = 0 unless exists $config->{debug};
+    $config->{idle_packets} = 0 unless exists $config->{idle_packets};
     $| = 1 if $config->{debug} >= 3;
 
     open my $fin, "<", $filename or die "can not open $filename";
@@ -116,9 +127,7 @@ sub read_frames {
         if (
             read( $fin, $raw, $config->{record_len} ) != $config->{record_len} )
         {
-            warn "Fatal: Not a full frame record of "
-              . $config->{record_len}
-              . " bytes\n";
+            warn "Fatal: Not a full frame record of " , $config->{record_len} , " bytes\n";
             return -1;
         }
 
@@ -153,9 +162,7 @@ sub read_frames {
         }
         print CcsdsDump($tmframe_header) if $config->{debug};
         print "Fhp:$fhp," if $config->{debug} > 2;
-        print "Frame:"
-          . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|"
-          . unpack( 'H*', substr( $raw, 6 ) ) . "|\n"
+        print "Frame:" . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|" . unpack( 'H*', substr( $raw, 6 ) ) . "|\n"
           if $config->{debug} > 2;
 
         #Remove Primary header and Secondary if there
@@ -184,17 +191,13 @@ sub read_frames {
                   "We have pending data and current frame has a data header\n"
                   if $config->{debug} >= 3;
                 my $raw_packet = $packet_vcid[$vc] . substr $raw, 0, $fhp;
-                print
-"After appending all packets slice, we have a packet of length ",
-                  length $raw_packet, "\n"
+                print "After appending all packets slice, we have a packet of length ", length $raw_packet, "\n"
                   if $config->{debug} >= 3;
                 if ( !_try_decode_pkt( $raw_packet, $config ) ) {
                     warn "Corrupted packet - using FHP to resync\n";
                     if ( $config->{debug} >= 3 ) {
-                        print "old data were:",
-                          unpack( 'H*', $packet_vcid[$vc] ), "\n";
-                        print "complete concatenated data:",
-                          unpack( 'H*', $raw_packet ), "\n";
+                        print "old data were:", unpack( 'H*', $packet_vcid[$vc] ), "\n";
+                        print "complete concatenated data:", unpack( 'H*', $raw_packet ), "\n";
                     }
                 }
             }
@@ -215,10 +218,10 @@ sub read_frames {
             }
 
             #go forward in the frame to the next packet
-            print "Removing ", unpack( 'H*', substr $raw, 0, $pkt_len ), "\n"
+            print "Removing Length $pkt_len bytes: ", unpack( 'H*', substr $raw, 0, $pkt_len ), "\n"
               if $config->{debug} >= 3;
-            $raw = substr $raw, $pkt_len;
-            print "Remains  ", unpack( 'H*', $raw ), "\n"
+            substr($raw,0,$pkt_len)='';
+            print "Remains  <", unpack( 'H*', $raw ), ">\n"
               if $config->{debug} >= 3;
         } while length $raw;
     }

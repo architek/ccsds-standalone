@@ -16,11 +16,10 @@ use Ccsds::StdTime;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-our $TMSourceSecondaryHeader = $Ccsds::Custo::TMSourceSecondaryHeader // Struct(
-    'TMSourceSecondaryHeader',    ### 12 bytes
+our $TMSourceSecondaryHeader = 
+  $Ccsds::Custo::TMSourceSecondaryHeader // Struct( 'TMSourceSecondaryHeader',    ### 12 bytes
     Value( 'Length', 12 ),
-    BitStruct(
-        'SecHeadFirstField',      #1 byte
+    BitStruct( 'SecHeadFirstField',      #1 byte
         BitField( 'Spare1',             1 ),
         BitField( 'PUS Version Number', 3 ),
         Nibble('Spare2')
@@ -33,10 +32,8 @@ our $TMSourceSecondaryHeader = $Ccsds::Custo::TMSourceSecondaryHeader // Struct(
 );
 
 #Exported in case for detecting non data packets: time, idle
-our $TMSourcePacketHeader = Struct(
-    'Packet Header',                           ### 6 bytes
-    BitStruct(
-        'Packet Id',                           #5+11 bits
+our $TMSourcePacketHeader = Struct( 'Packet Header',                           ### 6 bytes
+    BitStruct( 'Packet Id',                           #5+11 bits
         BitField( 'Version Number', 3 ),
         BitField( 'Type',           1 ),
         Flag('DFH Flag'),
@@ -56,50 +53,38 @@ our $TMSourcePacketHeader = Struct(
 
 sub source_data_length {
     my $sdl;
-    $sdl =
-      1 +
-      $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'}
-      ->{'Packet Length'};
+    $sdl = 1 + $_->ctx(1)->{'Packet Header'}->{'Packet Sequence Control'} ->{'Packet Length'};
 
-    #16 Bits CRC
-    $sdl -= 2 if ( $_->ctx(1)->{'Has Crc'} );
+    #If there, 16 Bits CRC
+    $sdl -= 2 if $_->ctx(1)->{'Has Crc'};
 
-    #DataField Header?
-    if ( $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} ) {
-        $sdl -= $_->ctx->{'TMSourceSecondaryHeader'}->{'Length'};
-    }
+    #If there, DataField Header
+    $sdl -= $_->ctx->{'TMSourceSecondaryHeader'}->{'Length'}
+        if $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'};
     return $sdl;
 }
 
 #By default, we consider that Idle packets have no crc
-my $has_crc = Value(
-    'Has Crc',
+my $has_crc = Value( 'Has Crc', 
     sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1 : 0 }
-);
+    );
 
-our $TMSourcePacket = Struct(
-    'TM Source Packet',
+our $TMSourcePacket = Struct( 'TM Source Packet',
     $TMSourcePacketHeader,
     $Ccsds::Custo::has_crc // $has_crc,
-    Struct(
-        'Packet Data Field',
-        If(
-            sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
-            $TMSourceSecondaryHeader,
-        ),
+    Struct( 'Packet Data Field',
+        If( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
+            $TMSourceSecondaryHeader
+            ),
         Array( \&source_data_length, UBInt8('Source Data') ),
-        If(
-            sub { $_->ctx(1)->{'Has Crc'} }
-            ,    #Can be optionnal, overriden by caller
+        If( sub { $_->ctx(1)->{'Has Crc'} } ,
             UBInt16('Packet Error Control')
-        ),
+            ),
     ),
 );
 
-our $ScosTMSourcePacket = Struct(
-    'Scos TM Source Packet',
-    Array( 20, UBInt8('Scos Header') ),
-    $TMSourcePacket
+our $ScosTMSourcePacket = Struct( 'Scos TM Source Packet',
+    Array( 20, UBInt8('Scos Header') ), $TMSourcePacket
 );
 
 require Exporter;

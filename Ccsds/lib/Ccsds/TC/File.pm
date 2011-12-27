@@ -31,6 +31,7 @@ my $rec_head;
 
 sub read_frames {
     my ( $filename, $config ) = @_;
+    $config->{debug} = 0 unless exists $config->{debug};
 
 #$Data::ParseBinary::print_debug_info = 1 if $odebug;
 #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output

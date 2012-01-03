@@ -9,7 +9,7 @@ Ccsds::TM::File - Set of utilities to work on CCSDS TM Files
 
 =cut
 
-use Ccsds::Utils qw(tm_verify_crc CcsdsDump);
+use Ccsds::Utils qw(tm_verify_crc CcsdsDump hdump);
 use Ccsds::TM::Frame qw($TMFrame);
 use Ccsds::TM::SourcePacket
   qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
@@ -21,7 +21,7 @@ use Try::Tiny;
 sub _try_decode_pkt {
     my ( $data, $config ) = @_;
     my ( $pkt_len, $is_idle, $apid, $tmpacket, $tmpacketh, $catch );
-    
+
     #Header
     try {
         $catch = 0;
@@ -38,8 +38,8 @@ sub _try_decode_pkt {
     $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
     return $pkt_len if $is_idle and !$config->{idle_packets};
     return 0 if $pkt_len > length($data);
-    
-    warn CcsdsDump($tmpacketh)
+
+    print CcsdsDump($tmpacketh)
        if $config->{debug} and ( $config->{idle_packets} or !$is_idle );
 
     #Packet
@@ -113,6 +113,17 @@ sub read_frames {
     while ( !eof $fin ) {
         my $raw;
 
+        #Display next record
+        if ($config->{debug}>3) {
+            use Fcntl "SEEK_SET";
+            my $traw;
+            my $curpos=tell($fin);
+            if ( read( $fin, $traw, $config->{record_len} ) != $config->{record_len} ) {
+                warn "warning: debug output>3 can't read a full frame\n";
+            }
+            warn "Record:\n" . hdump($traw) . "\n\n";
+            seek($fin,$curpos,SEEK_SET);
+        }
         #Search Sync if file has them
         if ( $config->{has_sync} ) {
             my $nbytes = _search_sync( $fin, $config->{offset_data} );
@@ -125,8 +136,7 @@ sub read_frames {
         }
 
         # Read a record
-        if (
-            read( $fin, $raw, $config->{record_len} ) != $config->{record_len} )
+        if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} )
         {
             warn "Fatal: Not a full frame record of " , $config->{record_len} , " bytes\n";
             return -1;
@@ -168,8 +178,7 @@ sub read_frames {
 
         #Remove Primary header and Secondary if there
         my $offset = 6;
-        $offset +=
-          $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} + 1
+        $offset += $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} + 1
           if ($sec);
         $raw = substr $raw, $offset;
 
@@ -179,8 +188,7 @@ sub read_frames {
             if ( $fhp == 0b11111111111 ) {
 
 #we don't have another packet that begins. this one might end now or on a next frame
-                print
-                  "We have pending data and current frame has no data header\n"
+                print "We have pending data and current frame has no data header\n"
                   if $config->{debug} >= 3;
                 $packet_vcid[$vc] .= $raw;
                 next;
@@ -188,8 +196,7 @@ sub read_frames {
             else {
 
                 #stop at the next packet
-                print
-                  "We have pending data and current frame has a data header\n"
+                print "We have pending data and current frame has a data header\n"
                   if $config->{debug} >= 3;
                 my $raw_packet = $packet_vcid[$vc] . substr $raw, 0, $fhp;
                 print "After appending all packets slice, we have a packet of length ", length $raw_packet, "\n"
@@ -230,8 +237,7 @@ sub read_frames {
 #End of file, try to decode last packet that has split on the previous frame(s) and until the last byte of this frame
     if ( length $packet_vcid[$vc] ) {
         if ( !_try_decode_pkt( $packet_vcid[$vc], $config ) ) {
-            warn
-"Last packet corrupt and can't resync as there is no more frame\n";
+            warn "Last packet corrupt and can't resync as there is no more frame\n";
         }
     }
     close $fin;

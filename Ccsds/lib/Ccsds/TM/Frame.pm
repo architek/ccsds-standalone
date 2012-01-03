@@ -11,8 +11,7 @@ Ccsds::TM::Frame - Decoding/Encoding of TM Frame
 
 use Data::ParseBinary;
 
-our $TMFrameHeader = BitStruct(
-    'TM Frame Header',    #6 bytes
+our $TMFrameHeader = BitStruct( 'TM Frame Header',    #6 bytes
     BitField( 'Version Number Frame', 2 ),    #16 bits
     BitField( 'SpaceCraftId',         10 ),
     BitField( 'Virtual Channel Id',   3 ),
@@ -26,26 +25,40 @@ our $TMFrameHeader = BitStruct(
     BitField( 'First Header Pointer', 11 ),
 );
 
-my $TMFrameSecondaryHeader = BitStruct(
-    'TM Frame Secondary Header',
+my $TMFrameSecondaryHeader = BitStruct( 'TM Frame Secondary Header',
     BitField( 'Sec Header Version', 2 ),
     BitField( 'Sec Header Length',  6 ),
     Array( sub { $_->ctx->{'Sec Header Length'} - 1 }, UBInt8('Data') )
 );
 
-#TODO if Operation Flag is 0, no CLCW
-#TODO Decode CLCW
+my $CLCW = BitStruct(
+    Flag( 'Ctrl World'),
+    BitField( 'CLCW Version',2),
+    BitField( 'Status Field',3),
+    BitField( 'COP in effect',2),
+    BitField( 'Virtual Channel ID',6),
+    BitField( 'Spare',2),
+    Flag( 'NoRFAvail'),
+    Flag( 'NoBitLock'),
+    Flag( 'Lockout'),
+    Flag( 'Wait'),
+    Flag( 'Retransmit'),
+    BitField( 'FarmB Counter',2),
+    Flag( 'Spare'),
+    Byte('Report Value')
+);
+
 #TODO customization for FEC
 #TODO customization for Frame length
-our $TMFrame = Struct(
-    'TMFrame',
+our $TMFrame = Struct( 'TMFrame',
     $TMFrameHeader,
     If(
         sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'} },
         $TMFrameSecondaryHeader
     ),
     Array( 1105, UBInt8('Data') ),
-    UBInt32('CLCW'),
+#if Operation Flag is 0, no CLCW
+    $CLCW,
 
     #UBInt16('FEC')
 );

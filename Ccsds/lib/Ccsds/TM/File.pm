@@ -15,7 +15,7 @@ use Ccsds::TM::SourcePacket
   qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
 use Try::Tiny;
 
-#Given a data field binary stream, tries to decode packet.
+#Given a data field binary stream, tries to decode FIRST packet.
 #If a packet is found, return its length or 0 if no valid/complete packet (wrt to length and datas)
 #Crc Check: if crc of non idle packet is incorrect, display error message
 sub _try_decode_pkt {
@@ -57,18 +57,17 @@ sub _try_decode_pkt {
     print CcsdsDump( $tmpacket, $config->{ascii} )
        if $config->{debug} >= 2 and ( $config->{idle_packets} or !$is_idle );
 
-    #Execute coderefs
+    #Execute coderefs. We now pass only the decoded packet, based on the ccsds length (datafield length-1)
     for ( @{ $config->{coderefs_packet} } ) {
-        if ( $config->{idle_packets} or !$is_idle ) {
-            $_->( $tmpacket, $data );
-        }
+        my $pkt = substr( $data, 0, $pkt_len );
+        $_->( $tmpacket, $pkt );
     }
 
     #We got a complete packet, verify CRC
     if ( $tmpacket->{'Has Crc'}
         && !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
     {
-        warn "CRC of packet does not match\n";
+        warn "CRC of previous packet does not match\n";
         print unpack( 'H*', $data ), "\n" if $config->{debug} >= 3;
     }
     return $pkt_len;
@@ -101,9 +100,9 @@ sub read_frames {
     my $pkt_len;
     my @packet_vcid = ("") x 8;    # VC 0..7
 
-#Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $config->{debug} = 0 unless exists $config->{debug};
     $config->{idle_packets} = 0 unless exists $config->{idle_packets};
+#Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $| = 1 if $config->{debug} >= 3;
 
     open my $fin, "<", $filename or die "can not open $filename";
@@ -114,12 +113,12 @@ sub read_frames {
         my $raw;
 
         #Display next record
-        if ($config->{debug}>3) {
+        if ($config->{debug} >= 4) {
             use Fcntl "SEEK_SET";
             my $traw;
             my $curpos=tell($fin);
             if ( read( $fin, $traw, $config->{record_len} ) != $config->{record_len} ) {
-                warn "warning: debug output>3 can't read a full frame\n";
+                warn "warning: debug output >=4 can't read a full frame\n";
             }
             warn "Record:\n" . hdump($traw) . "\n\n";
             seek($fin,$curpos,SEEK_SET);

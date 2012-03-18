@@ -31,7 +31,7 @@ my $TMFrameSecondaryHeader = BitStruct( 'TM Frame Secondary Header',
     Array( sub { $_->ctx->{'Sec Header Length'} - 1 }, UBInt8('Data') )
 );
 
-my $CLCW = BitStruct(
+my $CLCW = BitStruct('CLCW',
     Flag( 'Ctrl World'),
     BitField( 'CLCW Version',2),
     BitField( 'Status Field',3),

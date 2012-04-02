@@ -15,6 +15,10 @@ use Ccsds::TM::SourcePacket
   qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
 use Try::Tiny;
 
+sub mdebug { my ($class,$mess) = @_;
+    $config->{coderefs_output}->($mess) if $config->{coderefs_output} and $config->{output}->{$class};
+}
+
 #Given a data field binary stream, tries to decode FIRST packet.
 #If a packet is found, return its length or 0 if no valid/complete packet (wrt to length and datas)
 #Crc Check: if crc of non idle packet is incorrect, display error message
@@ -73,25 +77,6 @@ sub _try_decode_pkt {
     return $pkt_len;
 }
 
-#Search a sync in file and if yes go back by an offset (relating to first byte after sync)
-#This is not very io efficient
-sub _search_sync {
-    use Fcntl "SEEK_CUR";
-    my ( $file, $offset ) = @_;
-    my $raw;
-    my $bytes = 0;
-    while ( !eof $file ) {
-        last unless read( $file, $raw, 4 ) == 4;
-        if ( $raw eq "\x1a\xcf\xfc\x1d" ) {
-            seek( $file, -$offset, SEEK_CUR );
-            return $bytes;
-        }
-        seek( $file, -3, SEEK_CUR );
-        $bytes++;
-    }
-    return -1;    #eof hit
-}
-
 sub read_frames {
     my ( $filename, $config ) = @_;
 
@@ -112,39 +97,23 @@ sub read_frames {
     while ( !eof $fin ) {
         my $raw;
 
-        #Display next record
-        if ($config->{debug} >= 4) {
-            use Fcntl "SEEK_SET";
-            my $traw;
-            my $curpos=tell($fin);
-            if ( read( $fin, $traw, $config->{record_len} ) != $config->{record_len} ) {
-                warn "warning: debug output >=4 can't read a full frame\n";
-            }
-            warn "Record:\n" . hdump($traw) . "\n\n";
-            seek($fin,$curpos,SEEK_SET);
-        }
-        #Search Sync if file has them
-        if ( $config->{has_sync} ) {
-            my $nbytes = _search_sync( $fin, $config->{offset_data} );
-            if ( $nbytes == -1 ) {
-                warn "Hit end of file while searching SYNC MARKER\n";
-                last;
-            }
-            $nbytes -= $config->{offset_data} - 4;
-            warn "Had to skip $nbytes bytes to find sync marker\n" if $nbytes;
-        }
-
         # Read a record
-        if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} )
-        {
+        if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
             warn "Fatal: Not a full frame record of " , $config->{record_len} , " bytes\n";
-            return -1;
+            return -1; 
+        }
+        #If sync, check
+        if ($config->{has_sync}) {
+            if ( substr( $raw, $config->{offset_data} - 4 , 4 ) ne "\x1a\xcf\xfc\x1d" ) {
+                warn "Record does not contain a SYNC, reading next record\n";
+                next FRAME_DECODE;
+            }
         }
 
         $frame_nr++;
 
         #Extract frame from record
-        my $rec_head = substr $raw, 0, $config->{offset_data};
+        my $rec_head = substr $raw, 0, $config->{offset_data} - 4;
         $raw = substr $raw, $config->{offset_data}, $config->{frame_len};
 
         #Parse frame

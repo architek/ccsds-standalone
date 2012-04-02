@@ -16,10 +16,13 @@ use Ccsds::TM::SourcePacket
 use Try::Tiny;
 
 sub dbg { my ($class,$mess,$config) = @_;
-    $config->{coderefs_output}->($mess) if $config->{coderefs_output} and $config->{output}->{$class};
+    if ($config->{output}->{$class}) {
+        $config->{coderefs_output}->($mess) if $config->{coderefs_output};
+        warn "$mess\n";
+    }
 }
 
-#Given a data field binary stream, tries to decode FIRST packet.
+#Given a data field binary stream, tries to decode exactly one packet.
 #If a packet is found, return its length or 0 if no valid/complete packet (wrt to length and datas)
 #Crc Check: if crc of non idle packet is incorrect, display error message
 sub _try_decode_pkt {
@@ -44,8 +47,7 @@ sub _try_decode_pkt {
     return $pkt_len if $is_idle and !$config->{idle_packets};
     return 0 if $pkt_len > length($data);
 
-    dbg "data", CcsdsDump($tmpacketh), $config
-       if $config->{idle_packets} or !$is_idle ;
+    dbg "data", CcsdsDump($tmpacketh), $config if $config->{idle_packets} or !$is_idle ;
 
     #Packet
     try {
@@ -62,19 +64,20 @@ sub _try_decode_pkt {
     dbg "data", CcsdsDump( $tmpacket, $config->{ascii}) , $config
        if $config->{idle_packets} or !$is_idle ;
 
-    #Execute coderefs. We now pass only the decoded packet, based on the ccsds length (datafield length-1)
+    #We got a complete packet, verify CRC
+    if ( $tmpacket->{'Has Crc'}
+        && !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
+    {
+        dbg "W","CRC of source packet does not match",$config ;
+        dbg "debug", unpack( 'H*', $data ), $config;
+    }
+
+    #Execute coderefs. Pass decoded packet and raw packet, based on the ccsds length (datafield length-1)
     for ( @{ $config->{coderefs_packet} } ) {
         my $pkt = substr( $data, 0, $pkt_len );
         $_->( $tmpacket, $pkt );
     }
 
-    #We got a complete packet, verify CRC
-    if ( $tmpacket->{'Has Crc'}
-        && !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
-    {
-        dbg "W","CRC of previous packet does not match",$config ;
-        dbg "debug", unpack( 'H*', $data ), $config;
-    }
     return $pkt_len;
 }
 
@@ -165,7 +168,7 @@ sub read_frames {
                 #stop at the next packet
                 dbg "debug", "We have pending data and current frame has a data header", $config;
                 my $raw_packet = $packet_vcid[$vc] . substr $raw, 0, $fhp;
-                dbg "After appending all packets slice, we have a packet of length ". length $raw_packet, $config;
+                dbg "debug", "After appending all packets slice, we have a packet of length ". length $raw_packet, $config;
                 if ( !_try_decode_pkt( $raw_packet, $config ) ) {
                     dbg "W","Corrupted packet - using FHP to resync", $config;
                     dbg "debug", "old data were:" . unpack( 'H*', $packet_vcid[$vc] ). "\n",
@@ -183,7 +186,7 @@ sub read_frames {
 #We got an incomplete packet, not yet the full packet.. store it. rem: try catch error is in $_
                 $packet_vcid[$vc] = $raw;
                 dbg "debug", "cut data:". unpack( 'H*', $packet_vcid[$vc] ).
-                  " length is ". length( $packet_vcid[$vc] ), $config;
+                             " length is ". length( $packet_vcid[$vc] ), $config;
                 next FRAME_DECODE;
             }
 

@@ -171,7 +171,7 @@ sub read_frames {
                 dbg "debug", "After appending all packets slice, we have a packet of length ". length $raw_packet, $config;
                 if ( !_try_decode_pkt( $raw_packet, $config ) ) {
                     dbg "W","Corrupted packet - using FHP to resync", $config;
-                    dbg "debug", "old data were:" . unpack( 'H*', $packet_vcid[$vc] ). "\n",
+                    dbg "debug", "old data were:" . unpack( 'H*', $packet_vcid[$vc] ). "\n" .
                                  "complete concatenated data:". unpack( 'H*', $raw_packet ), $config;
                 }
             }

@@ -65,10 +65,10 @@ sub _try_decode_pkt {
        if $config->{idle_packets} or !$is_idle ;
 
     #We got a complete packet, verify CRC
-    if ( $tmpacket->{'Has Crc'}
-        && !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
+    if ( $tmpacket->{'Has Crc'} and
+        !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
     {
-        dbg "W","CRC of source packet does not match\n",$config ;
+        dbg "W","CRC of following source packet does not match\n",$config ;
         dbg "debug", unpack( 'H*', $data ) . "\n", $config;
     }
 

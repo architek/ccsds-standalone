@@ -16,7 +16,7 @@ use Ccsds::StdTime;
 use Ccsds::TM::Pus;
 use Ccsds::TM::RM;
 
-our $TMSourceSecondaryHeader = 
+our $TMSourceSecondaryHeader =
   $Ccsds::Custo::TMSourceSecondaryHeader // Struct( 'TMSourceSecondaryHeader',    ### 12 bytes
     Value( 'Length', 12 ),
     BitStruct( 'SecHeadFirstField',      #1 byte
@@ -63,7 +63,7 @@ sub source_data_length {
 }
 
 #By default, we consider that Idle packets have no crc
-my $has_crc = Value( 'Has Crc', 
+my $has_crc = Value( 'Has Crc',
     sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1 : 0 }
     );
 

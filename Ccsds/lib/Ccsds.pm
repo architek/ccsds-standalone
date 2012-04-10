@@ -9,7 +9,7 @@ Ccsds - Module used to decode or encode CCSDS TC/TM
 
 =cut
 
-our $VERSION = '2.4';
+our $VERSION = '2.5';
 
 require Exporter;
 our @ISA    = qw(Exporter);

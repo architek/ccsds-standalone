@@ -13,8 +13,6 @@ use Data::ParseBinary;
 
 use Ccsds::Common;
 use Ccsds::StdTime;
-use Ccsds::TM::Pus;
-use Ccsds::TM::RM;
 
 our $TMSourceSecondaryHeader =
   $Ccsds::Custo::TMSourceSecondaryHeader // Struct( 'TMSourceSecondaryHeader',    ### 12 bytes

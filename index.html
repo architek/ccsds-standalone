@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Ccsds-standalone by architek</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Ccsds-standalone</h1>
+        <p>CCSDS encoder/decoder</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/architek/ccsds-standalone" class="button fork"><strong>Fork On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/architek/ccsds-standalone/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/architek/ccsds-standalone/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>Ccsds - Module used to decode or encode CCSDS TC/TM</h1>
+
+<h2>SYNOPSIS</h2>
+
+<p>This library allows decoding and encoding of CCSDS stream defined in the PSS/ECSS standards.
+The current module Ccsds.pm only exports $VERSION which can be retried to know the version of the library. </p>
+
+<pre><code>use Ccsds::Utils qw(tm_verify_crc);
+use Ccsds::TM::Frame qw($TMFrame);
+use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader) ;
+use Data::Dumper;
+
+#Decode binary input as CCSDS TM Source Packet
+my $tm         = $TMSourcePacket-&gt;parse($input);
+
+my $header     = $tm-&gt;{'Packet Header'};
+my $dataf      = $tm-&gt;{'Packet Data Field'};
+my $data       = $dataf-&gt;{'Data Field'};
+my $pid        = $header-&gt;{'Packet Id'}-&gt;{'Apid'}-&gt;{'PID'};
+my $sec_header = $data-&gt;{'TMSourceSecondaryHeader'};
+my $pus_data   = $data-&gt;{'PusData'};
+my $pus_t      = $sec_header-&gt;{'Service Type'};
+my $pus_st     = $sec_header-&gt;{'Service Subtype'};
+
+my $ref_length = \$f_header-&gt;{'Packet Sequence Control'}-&gt;{'Packet Length'};
+
+#Correct packet_length for some broken traffic
+if ( $pid == 6 and $pus_t == 3 and $pus_st == 25 ) {
+    $$ref_length_packet_length += 2;
+}
+
+#Rebuild Telemetry
+$data = $TMSourcePacket-&gt;build($decoded);
+patch_crc(\$data);
+
+...
+</code></pre>
+
+<h2>AUTHOR</h2>
+
+<p>Laurent KISLAIRE, C&lt;&lt;  &gt;&gt;</p>
+
+<h2>BUGS</h2>
+
+<p>Please report any bugs or feature requests to C</p>
+
+<h2>SUPPORT</h2>
+
+<p>You can find documentation for this module with the perldoc command.</p>
+
+<pre><code>perldoc Ccsds
+</code></pre>
+
+<h2>LICENSE AND COPYRIGHT</h2>
+
+<p>Copyright 2010-2012 Laurent KISLAIRE.</p>
+
+<p>This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.</p>
+
+<p>See <a href="http://dev.perl.org/licenses/">http://dev.perl.org/licenses/</a> for more information.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/architek">architek</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>

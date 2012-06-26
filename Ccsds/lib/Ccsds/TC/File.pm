@@ -95,14 +95,14 @@ sub read_frames {
         if ( $state == IN ) {
 
             #We are in a packet
-            die
+           warn 
 "Wrong segment, we received Sequence flag $seqf while we expect 0 or 2\n"
               unless ( $seqf == CONT or $seqf == LAST );
             next if ( $seqf == CONT );
             $state = OUT;
         }
         elsif ( $state == OUT ) {
-            die
+           warn 
 "Wrong segment, we received Sequence flag $seqf while we expect 1 or 3\n"
               unless ( $seqf == FIRST or $seqf == STAND );
             if ( $seqf == FIRST ) {

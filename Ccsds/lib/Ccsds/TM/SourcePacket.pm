@@ -30,7 +30,9 @@ our $TMSourceSecondaryHeader =
 );
 
 #Exported in case for detecting non data packets: time, idle
-our $TMSourcePacketHeader = Struct( 'Packet Header',                           ### 6 bytes
+our $TMSourcePacketHeader = 
+$Ccsds::Custo::TMSourcePacketHeader //
+    Struct( 'Packet Header',                           ### 6 bytes
     BitStruct( 'Packet Id',                           #5+11 bits
         BitField( 'Version Number', 3 ),
         BitField( 'Type',           1 ),

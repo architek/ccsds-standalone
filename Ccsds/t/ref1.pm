@@ -1,7 +1,7 @@
 #GIO is the reference Mission customization used for tests
 BEGIN{ 
     use FindBin qw($Bin);
-    require "$Bin/custo-gio.pm" 
+    require "$Bin/Custo-gio.pm" 
 }
 
 package ref1;

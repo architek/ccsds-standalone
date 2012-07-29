@@ -12,7 +12,6 @@ Ccsds::TC::SourcePacket - Decoding/Encoding of TC Source Packets
 use Data::ParseBinary;
 use Ccsds::Common;
 
-#TODO Customization (does CCSDS allows custo of this header? Probably for example encryption header)
 our $TCSourceSecondaryHeader = Struct( 'TCSourceSecondaryHeader',    #32 bits
     BitStruct( 'SecHeadFirstField', 
         BitField( 'Spare1', 1 ),

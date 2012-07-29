@@ -21,7 +21,8 @@ our $Pid = Enum(
     _default_ => $DefaultPass
 );
 
-our $Apid = BitStruct( 'Apid', $Pid, Nibble('Pcat') );
+our $Apid = 
+$Ccsds::Custo::Apid // BitStruct( 'Apid', $Pid, Nibble('Pcat') );
 
 require Exporter;
 our @ISA    = qw(Exporter);

@@ -11,7 +11,9 @@ Ccsds::TM::Frame - Decoding/Encoding of TM Frame
 
 use Data::ParseBinary;
 
-our $TMFrameHeader = BitStruct( 'TM Frame Header',    #6 bytes
+our $TMFrameHeader = 
+$Ccsds::Custo::TMFrameHeader // BitStruct( 'TM Frame Header',    #6 bytes
+    Value('Length',6),
     BitField( 'Version Number Frame', 2 ),    #16 bits
     BitField( 'SpaceCraftId',         10 ),
     BitField( 'Virtual Channel Id',   3 ),
@@ -50,7 +52,7 @@ my $CLCW = BitStruct('CLCW',
 
 #TODO customization for FEC
 #TODO customization for Frame length
-our $TMFrame = Struct( 'TMFrame',
+our $TMFrame = $Ccsds::Custo::TMFrame // Struct( 'TMFrame',
     $TMFrameHeader,
     If(
         sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'} },

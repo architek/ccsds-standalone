@@ -11,8 +11,7 @@ Ccsds::TM::File - Set of utilities to work on CCSDS TM Files
 
 use Ccsds::Utils qw(tm_verify_crc CcsdsDump hdump);
 use Ccsds::TM::Frame qw($TMFrame);
-use Ccsds::TM::SourcePacket
-  qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
+use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
 use Try::Tiny;
 
 sub dbg { my ($class,$mess,$config) = @_;
@@ -128,16 +127,22 @@ sub read_frames {
         $_->( $tmframe, $raw, $rec_head ) for @{ $config->{coderefs_frame} };
 
         #Remove CLCW
-        $raw = substr $raw, 0, -4;
+        $raw = substr($raw, 0, -4) if exists $tmframe->{CLCW};
 
-        if ( $tmframe->{'TM Frame Header'}->{'Sync Flag'} ne '0' ) {
+        if ( exists $tmframe->{'TM Frame Header'}->{'Sync Flag'} and $tmframe->{'TM Frame Header'}->{'Sync Flag'} ne '0' ) {
             dbg "W","First Header Pointer undefined for frame $frame_nr!\n", $config;
             next;
         }
 
         my $tmframe_header = $tmframe->{'TM Frame Header'};
         my $fhp            = $tmframe_header->{'First Header Pointer'};
-        my $sec            = $tmframe_header->{'Sec Header'};
+
+        my $sec;        # Secondary header present ?
+        if (exists $tmframe_header->{'Sec Header'}) { 
+            $sec  = $tmframe_header->{'Sec Header'};
+        } else {
+            $sec = 1;
+        }
         $vc = $tmframe_header->{'Virtual Channel Id'};
         if ( $fhp == 0b11111111110 ) {
             dbg "data","Frame $frame_nr is an OID Transfer Frame\n",$config;
@@ -148,7 +153,7 @@ sub read_frames {
         dbg "data" , "Frame:" . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|" . unpack( 'H*', substr( $raw, 6 ) ) . "|" . "\n", $config;
 
         #Remove Primary header and Secondary if there
-        my $offset = 6;
+        my $offset = $tmframe->{'TM Frame Header'}->{Length};
         $offset += $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} + 1
           if ($sec);
         $raw = substr $raw, $offset;

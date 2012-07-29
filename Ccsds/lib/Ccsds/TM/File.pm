@@ -138,11 +138,8 @@ sub read_frames {
         my $fhp            = $tmframe_header->{'First Header Pointer'};
 
         my $sec;        # Secondary header present ?
-        if (exists $tmframe_header->{'Sec Header'}) { 
-            $sec  = $tmframe_header->{'Sec Header'};
-        } else {
-            $sec = 1;
-        }
+        $sec  = $tmframe_header->{'Sec Header'} if exists $tmframe_header->{'Sec Header'};
+        
         $vc = $tmframe_header->{'Virtual Channel Id'};
         if ( $fhp == 0b11111111110 ) {
             dbg "data","Frame $frame_nr is an OID Transfer Frame\n",$config;
@@ -155,7 +152,7 @@ sub read_frames {
         #Remove Primary header and Secondary if there
         my $offset = $tmframe->{'TM Frame Header'}->{Length};
         $offset += $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} + 1
-          if ($sec);
+          if $sec;
         $raw = substr $raw, $offset;
 
         if ( length $packet_vcid[$vc] ) {

@@ -46,7 +46,9 @@ sub _try_decode_pkt {
     return $pkt_len if $is_idle and !$config->{idle_packets};
     return 0 if $pkt_len > length($data);
 
-    dbg "data", CcsdsDump($tmpacketh), $config if $config->{idle_packets} or !$is_idle ;
+    if ($config->{output}->{data}) {
+        dbg "data", CcsdsDump($tmpacketh), $config if $config->{idle_packets} or !$is_idle ;
+    }
 
     #Packet
     try {
@@ -61,7 +63,7 @@ sub _try_decode_pkt {
     return 0 if $catch;
 
     dbg "data", CcsdsDump( $tmpacket, $config->{ascii}) , $config
-       if $config->{idle_packets} or !$is_idle ;
+       if $config->{output}->{data} and ($config->{idle_packets} or !$is_idle) ;
 
     #We got a complete packet, verify CRC
     if ( $tmpacket->{'Has Crc'} and
@@ -87,6 +89,9 @@ sub read_frames {
     my $vc;
     my $pkt_len;
     my @packet_vcid = ("") x 8;    # VC 0..7
+    my $skip;
+
+    $skip=$config->{skip} if exists $config->{skip};
 
     #Show warnings if user defined a warning subref
     $config->{output}->{W}=1;
@@ -105,6 +110,10 @@ sub read_frames {
         if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
             dbg "W","Fatal: Not a full frame record of " . $config->{record_len} . "\n", $config;
             return -1;
+        }
+        if ( $skip ) {
+            $skip--;
+            next FRAME_DECODE;
         }
         #If sync, check
         if ($config->{has_sync}) {
@@ -145,7 +154,7 @@ sub read_frames {
             dbg "data","Frame $frame_nr is an OID Transfer Frame\n",$config;
             next;
         }
-        dbg "data", CcsdsDump($tmframe_header) , $config;
+        if ($config->{output}->{data}) { dbg "data", CcsdsDump($tmframe_header) , $config; }
         dbg "debug", "Fhp:$fhp\n" , $config;
         dbg "data" , "Frame:" . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|" . unpack( 'H*', substr( $raw, 6 ) ) . "|" . "\n", $config;
 

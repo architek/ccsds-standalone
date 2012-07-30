@@ -88,7 +88,7 @@ sub read_frames {
     my $frame_nr = 0;
     my $vc;
     my $pkt_len;
-    my @packet_vcid = ("") x 8;    # VC 0..7
+    my @packet_vcid = ("") x 128;    # VC 0..127
     my $skip;
 
     $skip=$config->{skip} if exists $config->{skip};

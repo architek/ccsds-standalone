@@ -42,7 +42,8 @@ sub _try_decode_pkt {
 
     $apid     = $tmpacketh->{'Packet Id'}->{'vApid'};
     $is_idle  = $apid == 0b11111111111 ? 1 : 0;
-    $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
+    #$pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
+    $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $tmpacketh->{Length};
     
     return $pkt_len if $is_idle and !$config->{idle_packets};
     return 0 if $pkt_len > length($data);
@@ -120,15 +121,30 @@ sub read_frames {
             }
         }
 
-        $frame_nr++;
 
         #Extract frame from record
         my $rec_head = substr $raw, 0, $config->{offset_data} - 4;
         $raw = substr $raw, $config->{offset_data}, $config->{frame_len};
 
         #Parse frame
-        my $tmframe = $TMFrame->parse($raw);
-
+        my $tmframe        = $TMFrame->parse($raw);
+        my $tmframe_header = $tmframe->{'TM Frame Header'};
+        my $fhp            = $tmframe_header->{'First Header Pointer'};
+        
+        #if we reached the number of frames and we end up on a packet boundary, stop
+        return $frame_nr if defined $config->{frame_nr} and $frame_nr >= $config->{frame_nr} and $fhp!= 0b11111111111 ;
+        #skip n frames
+        if ( $skip ) {
+            $skip--;
+            next FRAME_DECODE;
+        }
+        #if we were requested to skip frames, skip until next packet boundary (or OID frame)
+        if (defined $skip) {
+            next FRAME_DECODE if $fhp == 0b11111111111 ;
+            $skip=undef;
+        }
+        $frame_nr++;
+        
         #Execute coderefs
         $_->( $tmframe, $raw, $rec_head ) for @{ $config->{coderefs_frame} };
 
@@ -140,17 +156,6 @@ sub read_frames {
             next;
         }
 
-        my $tmframe_header = $tmframe->{'TM Frame Header'};
-        my $fhp            = $tmframe_header->{'First Header Pointer'};
-        #if we reached the number of frames and we end up on a packet boundary, stop
-        return $frame_nr if defined $config->{frame_nr} and $frame_nr > $config->{frame_nr} and $fhp!= 0b11111111111 ;
-        #skip n frames
-        if ( $skip ) {
-            $skip--;
-            next FRAME_DECODE;
-        }
-        #if we were requested to skip frames, skip until next packet boundary (or OID frame)
-        next FRAME_DECODE if defined $skip and $fhp == 0b11111111111;
 
         my $sec;        # Secondary header present ?
         $sec  = $tmframe_header->{'Sec Header'} if exists $tmframe_header->{'Sec Header'};

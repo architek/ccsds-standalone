@@ -42,7 +42,6 @@ sub _try_decode_pkt {
 
     $apid     = $tmpacketh->{'Packet Id'}->{'vApid'};
     $is_idle  = $apid == 0b11111111111 ? 1 : 0;
-    #$pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + 6;
     $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $tmpacketh->{Length};
     
     return $pkt_len if $is_idle and !$config->{idle_packets};

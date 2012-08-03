@@ -31,8 +31,8 @@ our $TMSourceSecondaryHeader =
 
 #Exported in case for detecting non data packets: time, idle
 our $TMSourcePacketHeader = 
-$Ccsds::Custo::TMSourcePacketHeader //
-    Struct( 'Packet Header',                           ### 6 bytes
+$Ccsds::Custo::TMSourcePacketHeader // Struct( 'Packet Header',   ### 6 bytes
+    Value('Length',6),
     BitStruct( 'Packet Id',                           #5+11 bits
         BitField( 'Version Number', 3 ),
         BitField( 'Type',           1 ),
@@ -67,14 +67,15 @@ my $has_crc = Value( 'Has Crc',
     sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1 : 0 }
     );
 
-our $TMSourcePacket = Struct( 'TM Source Packet',
+our $TMSourcePacket = $Ccsds::Custo::TMSourcePacket // Struct( 'TM Source Packet',
     $TMSourcePacketHeader,
     $Ccsds::Custo::has_crc // $has_crc,
     Struct( 'Packet Data Field',
         If( sub { $_->ctx(1)->{'Packet Header'}->{'Packet Id'}->{'DFH Flag'} },
             $TMSourceSecondaryHeader
             ),
-        Array( \&source_data_length, UBInt8('Source Data') ),
+        #Array( \&source_data_length, UBInt8('Source Data') ),
+        String( 'Source Data',\&source_data_length ),
         If( sub { $_->ctx(1)->{'Has Crc'} } ,
             UBInt16('Packet Error Control')
             ),

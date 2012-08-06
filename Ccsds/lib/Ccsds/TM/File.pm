@@ -14,8 +14,9 @@ use Ccsds::TM::Frame qw($TMFrame);
 use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
 use Try::Tiny;
 
-sub dbg { my ($class,$mess,$config) = @_;
-    if ($config->{output}->{$class}) {
+sub dbg {
+    my ( $class, $mess, $config ) = @_;
+    if ( $config->{output}->{$class} ) {
         $config->{coderefs_output}->($mess) if $config->{coderefs_output};
         warn "$mess";
     }
@@ -30,7 +31,7 @@ sub _try_decode_pkt {
 
     #Header
     try {
-        $catch = 0;
+        $catch     = 0;
         $tmpacketh = $TMSourcePacketHeader->parse($data);
     }
     catch {
@@ -40,20 +41,20 @@ sub _try_decode_pkt {
     };
     return 0 if $catch;
 
-    $apid     = $tmpacketh->{'Packet Id'}->{'vApid'};
-    $is_idle  = $apid == 0b11111111111 ? 1 : 0;
-    $pkt_len  = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $tmpacketh->{Length};
-    
+    $apid    = $tmpacketh->{'Packet Id'}->{'vApid'};
+    $is_idle = $apid == 0b11111111111 ? 1 : 0;
+    $pkt_len = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $tmpacketh->{Length};
+
     return $pkt_len if $is_idle and !$config->{idle_packets};
     return 0 if $pkt_len > length($data);
 
-    if ($config->{output}->{data}) {
-        dbg "data", CcsdsDump($tmpacketh), $config if $config->{idle_packets} or !$is_idle ;
+    if ( $config->{output}->{data} ) {
+        dbg "data", CcsdsDump($tmpacketh), $config if $config->{idle_packets} or !$is_idle;
     }
 
     #Packet
     try {
-        $catch=0;
+        $catch    = 0;
         $tmpacket = $TMSourcePacket->parse($data);
     }
     catch {
@@ -63,14 +64,14 @@ sub _try_decode_pkt {
     };
     return 0 if $catch;
 
-    dbg "data", CcsdsDump( $tmpacket, $config->{ascii}) , $config
-       if $config->{output}->{data} and ($config->{idle_packets} or !$is_idle) ;
+    dbg "data", CcsdsDump( $tmpacket, $config->{ascii} ), $config
+      if $config->{output}->{data} and ( $config->{idle_packets} or !$is_idle );
 
     #We got a complete packet, verify CRC
-    if ( $tmpacket->{'Has Crc'} and
-        !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
+    if ( $tmpacket->{'Has Crc'}
+        and !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
     {
-        dbg "W","CRC of following source packet does not match\n",$config ;
+        dbg "W", "CRC of following source packet does not match\n", $config;
         dbg "debug", unpack( 'H*', $data ) . "\n", $config;
     }
 
@@ -92,13 +93,13 @@ sub read_frames {
     my @packet_vcid = ("") x 128;    # VC 0..127
     my $skip;
 
-    $skip=$config->{skip} if exists $config->{skip};
+    $skip = $config->{skip} if exists $config->{skip};
 
     #Show warnings if user defined a warning subref
-    $config->{output}->{W}=1;
+    $config->{output}->{W} = 1;
 
-#Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
-    $| = 1 if $config->{output}->{debug} ;
+    #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
+    $| = 1 if $config->{output}->{debug};
 
     open my $fin, "<", $filename or die "can not open $filename";
     binmode $fin;
@@ -109,17 +110,17 @@ sub read_frames {
 
         # Read a record
         if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
-            dbg "W","Fatal: Not a full frame record of " . $config->{record_len} . "\n", $config;
+            dbg "W", "Fatal: Not a full frame record of " . $config->{record_len} . "\n", $config;
             return -1;
         }
+
         #If sync, check
-        if ($config->{has_sync}) {
-            if ( substr( $raw, $config->{offset_data} - 4 , 4 ) ne "\x1a\xcf\xfc\x1d" ) {
-                dbg "W","Record does not contain a SYNC, reading next record\n", $config;
+        if ( $config->{has_sync} ) {
+            if ( substr( $raw, $config->{offset_data} - 4, 4 ) ne "\x1a\xcf\xfc\x1d" ) {
+                dbg "W", "Record does not contain a SYNC, reading next record\n", $config;
                 next FRAME_DECODE;
             }
         }
-
 
         #Extract frame from record
         my $rec_head = substr $raw, 0, $config->{offset_data} - 4;
@@ -129,44 +130,45 @@ sub read_frames {
         my $tmframe        = $TMFrame->parse($raw);
         my $tmframe_header = $tmframe->{'TM Frame Header'};
         my $fhp            = $tmframe_header->{'First Header Pointer'};
-        
+
         #if we reached the number of frames and we end up on a packet boundary, stop
-        return $frame_nr if defined $config->{frame_nr} and $frame_nr >= $config->{frame_nr} and $fhp!= 0b11111111111 ;
+        return $frame_nr if defined $config->{frame_nr} and $frame_nr >= $config->{frame_nr} and $fhp != 0b11111111111;
+
         #skip n frames
-        if ( $skip ) {
+        if ($skip) {
             $skip--;
             next FRAME_DECODE;
         }
+
         #if we were requested to skip frames, skip until next packet boundary (or OID frame)
-        if (defined $skip) {
-            next FRAME_DECODE if $fhp == 0b11111111111 ;
-            $skip=undef;
+        if ( defined $skip ) {
+            next FRAME_DECODE if $fhp == 0b11111111111;
+            $skip = undef;
         }
         $frame_nr++;
-        
+
         #Execute coderefs
         $_->( $tmframe, $raw, $rec_head ) for @{ $config->{coderefs_frame} };
 
         #Remove CLCW
-        $raw = substr($raw, 0, -4) if exists $tmframe->{CLCW};
+        $raw = substr( $raw, 0, -4 ) if exists $tmframe->{CLCW};
 
         if ( exists $tmframe->{'TM Frame Header'}->{'Sync Flag'} and $tmframe->{'TM Frame Header'}->{'Sync Flag'} ne '0' ) {
-            dbg "W","First Header Pointer undefined for frame $frame_nr!\n", $config;
+            dbg "W", "First Header Pointer undefined for frame $frame_nr!\n", $config;
             next;
         }
 
+        my $sec;    # Secondary header present ?
+        $sec = $tmframe_header->{'Sec Header'} if exists $tmframe_header->{'Sec Header'};
 
-        my $sec;        # Secondary header present ?
-        $sec  = $tmframe_header->{'Sec Header'} if exists $tmframe_header->{'Sec Header'};
-        
         $vc = $tmframe_header->{'Virtual Channel Id'};
         if ( $fhp == 0b11111111110 ) {
-            dbg "data","Frame $frame_nr is an OID Transfer Frame\n",$config;
+            dbg "data", "Frame $frame_nr is an OID Transfer Frame\n", $config;
             next;
         }
-        if ($config->{output}->{data}) { dbg "data", CcsdsDump($tmframe_header) , $config; }
-        dbg "debug", "Fhp:$fhp\n" , $config;
-        dbg "data" , "Frame:" . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|" . unpack( 'H*', substr( $raw, 6 ) ) . "|" . "\n", $config;
+        if ( $config->{output}->{data} ) { dbg "data", CcsdsDump($tmframe_header), $config; }
+        dbg "debug", "Fhp:$fhp\n", $config;
+        dbg "data", "Frame:" . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|" . unpack( 'H*', substr( $raw, 6 ) ) . "|" . "\n", $config;
 
         #Remove Primary header and Secondary if there
         my $offset = $tmframe->{'TM Frame Header'}->{Length};
@@ -179,8 +181,8 @@ sub read_frames {
             #Finish previous packet
             if ( $fhp == 0b11111111111 ) {
 
-#we don't have another packet that begins. this one might end now or on a next frame
-                dbg "debug", "We have pending data and current frame has no data header\n",$config;
+                #we don't have another packet that begins. this one might end now or on a next frame
+                dbg "debug", "We have pending data and current frame has no data header\n", $config;
                 $packet_vcid[$vc] .= $raw;
                 next;
             }
@@ -189,35 +191,40 @@ sub read_frames {
                 #stop at the next packet
                 dbg "debug", "We have pending data and current frame has a data header\n", $config;
                 my $raw_packet = $packet_vcid[$vc] . substr $raw, 0, $fhp;
-                dbg "debug", "After appending all packets slice, we have a packet of length ". length $raw_packet . "\n", $config;
+                dbg "debug", "After appending all packets slice, we have a packet of length " . length $raw_packet . "\n", $config;
                 if ( !_try_decode_pkt( $raw_packet, $config ) ) {
-                    dbg "W","Corrupted packet - using FHP to resync\n", $config;
-                    dbg "debug", "old data were:" . unpack( 'H*', $packet_vcid[$vc] ). "\nComplete concatenated data:". unpack( 'H*', $raw_packet ) . "\n", $config;
+                    dbg "W", "Corrupted packet - using FHP to resync\n", $config;
+                    dbg "debug",
+                        "old data were:"
+                      . unpack( 'H*', $packet_vcid[$vc] )
+                      . "\nComplete concatenated data:"
+                      . unpack( 'H*', $raw_packet )
+                      . "\n", $config;
                 }
             }
         }
 
-# We have no data remaining, fetch next packet pointed to by First Header Pointer
+        # We have no data remaining, fetch next packet pointed to by First Header Pointer
         $raw = substr $raw, $fhp;
         $packet_vcid[$vc] = "";
         do {
             if ( ( $pkt_len = _try_decode_pkt( $raw, $config ) ) == 0 ) {
 
-#We got an incomplete packet, not yet the full packet.. store it. rem: try catch error is in $_
+                #We got an incomplete packet, not yet the full packet.. store it. rem: try catch error is in $_
                 $packet_vcid[$vc] = $raw;
-                dbg "debug", "cut data:". unpack( 'H*', $packet_vcid[$vc] ).
-                             " length is ". length( $packet_vcid[$vc] ) . "\n", $config;
+                dbg "debug", "cut data:" . unpack( 'H*', $packet_vcid[$vc] ) . " length is " . length( $packet_vcid[$vc] ) . "\n",
+                  $config;
                 next FRAME_DECODE;
             }
 
             #go forward in the frame to the next packet
-            dbg "debug","Removing Length " . $pkt_len . " bytes: ". unpack( 'H*', substr $raw, 0, $pkt_len ) . "\n", $config;
-            substr($raw,0,$pkt_len)='';
-            dbg "debug", "Remains  <". unpack( 'H*', $raw ). ">" . "\n" , $config;
+            dbg "debug", "Removing Length " . $pkt_len . " bytes: " . unpack( 'H*', substr $raw, 0, $pkt_len ) . "\n", $config;
+            substr( $raw, 0, $pkt_len ) = '';
+            dbg "debug", "Remains  <" . unpack( 'H*', $raw ) . ">" . "\n", $config;
         } while length $raw;
     }
 
-#End of file, try to decode last packet that has split on the previous frame(s) and until the last byte of this frame
+    #End of file, try to decode last packet that has split on the previous frame(s) and until the last byte of this frame
     if ( length $packet_vcid[$vc] ) {
         if ( !_try_decode_pkt( $packet_vcid[$vc], $config ) ) {
             dbg "W", "Last packet corrupt and can't resync as there is no more frame\n", $config;

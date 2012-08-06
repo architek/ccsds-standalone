@@ -33,7 +33,7 @@ my $TMFrameSecondaryHeader = BitStruct( 'TM Frame Secondary Header',
     Array( sub { $_->ctx->{'Sec Header Length'} - 1 }, UBInt8('Data') )
 );
 
-my $CLCW = BitStruct('CLCW',
+our $CLCW = BitStruct('CLCW',
     Flag( 'Ctrl World'),
     BitField( 'CLCW Version',2),
     BitField( 'Status Field',3),
@@ -67,7 +67,7 @@ our $TMFrame = $Ccsds::Custo::TMFrame // Struct( 'TMFrame',
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw($TMFrameHeader $TMFrame);
+our @EXPORT = qw($TMFrameHeader $TMFrame $CLCW);
 
 =head1 SYNOPSIS
 

@@ -88,7 +88,7 @@ sub read_frames {
     my ( $filename, $config ) = @_;
 
     my $frame_nr = 0;
-    my $vc;
+    my $vc=0;
     my $pkt_len;
     my @packet_vcid = ("") x 128;    # VC 0..127
     my $skip;

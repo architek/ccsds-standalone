@@ -58,7 +58,7 @@ our $TMFrame = $Ccsds::Custo::TMFrame // Struct( 'TMFrame',
         sub { $_->ctx->{'TM Frame Header'}->{'Sec Header'} },
         $TMFrameSecondaryHeader
     ),
-    Array( 1105, UBInt8('Data') ),
+    String( 'Data',1105 ),
 #if Operation Flag is 0, no CLCW
     $CLCW,
 

@@ -63,7 +63,7 @@ sub source_data_length {
 }
 
 #By default, we consider that Idle packets have no crc
-my $has_crc = Value( 'Has Crc',
+our $has_crc = Value( 'Has Crc',
     sub { $_->ctx->{'Packet Header'}->{'Packet Id'}->{'vApid'} != 2047 ? 1 : 0 }
     );
 
@@ -89,7 +89,7 @@ our $ScosTMSourcePacket = Struct( 'Scos TM Source Packet',
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT =
-  qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader $ScosTMSourcePacket);
+  qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader $ScosTMSourcePacket $has_crc);
 
 =head1 SYNOPSIS
 

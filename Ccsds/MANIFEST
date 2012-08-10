@@ -12,6 +12,7 @@ lib/Ccsds/TM/Pus.pm
 lib/Ccsds/TM/RM.pm
 lib/Ccsds/TM/File.pm
 lib/Ccsds/TM/File2.pm
+lib/Ccsds/TM/File3.pm
 lib/Ccsds/TC/Frame.pm
 lib/Ccsds/TC/SourcePacket.pm
 lib/Ccsds/TC/Printer.pm

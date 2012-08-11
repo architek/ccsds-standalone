@@ -20,50 +20,44 @@ sub dbg {
     }
 }
 
-my $g_pkt_len;
-my $idle_frames;
-my $idle_packets;
-
 sub read_record {
-    my $raw;
     my ( $fin, $config ) = @_;
-    if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
+    my $c          = $config->{c};
+    my $len_record = $c->sizeof('record_t');
+    my $raw;
+
+    if ( read( $fin, $raw, $len_record ) != $len_record ) {
         warn "Incomplete record";
         return undef;
     }
 
     #If sync, check
-    if ( $config->{has_sync}
-        and substr( $raw, $config->{offset_data} - 4, 4 ) ne "\x1a\xcf\xfc\x1d" )
-    {
-        warn "Record does not contain a SYNC, reading next record";
-        return undef;
+    if ( $c->def('sync') ) {
+        my $sync_offset = $c->offsetof( 'record_t', 'sync' );
+        if ( substr( $raw, $sync_offset, 4 ) ne "\x1a\xcf\xfc\x1d" ) {
+            warn "Record does not contain a SYNC, reading next record";
+            return undef;
+        }
     }
     return $raw;
 }
 
 sub read_frames3 {
-    my ( $filename, $config , $c) = @_;
+    my ( $filename, $config ) = @_;
 
-    my $frame_nr = 0;
-    my $vc       = 0;
-    my $pkt_len;
-    my @packet_vcid = ("") x 128;    # VC 0..127
+    my $frame_nr    = 0;
     my $skip;
-    my $sec;
-    my $offset;
-
-    $g_pkt_len = undef;
-    my $TMSourcePacketHeaderLength = $config->{TMSourcePacketHeaderLength};
+    my $vc          = 0;
+    my @packet_vcid = ("") x 128;    # VC 0..127
+    my $c            = $config->{c};
+    my $idle_frames  = $config->{idle_frames};
+    my $idle_packets = $config->{idle_packets};
 
     #Show warnings if user defined a warning subref
     $config->{output}->{W} = 1;
 
     #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $| = 1 if $config->{output}->{debug};
-
-    $idle_frames  = $config->{idle_frames};
-    $idle_packets = $config->{idle_packets};
 
     open my $fin, "<", $filename or die "can not open $filename";
     binmode $fin;
@@ -80,13 +74,16 @@ sub read_frames3 {
 
         #Extract frame from record
         next FRAME_DECODE unless defined( $raw = read_record( $fin, $config ) );
-        my $rec_head = substr $raw, 0, $config->{offset_data} - 4;
-        $raw = substr $raw, $config->{offset_data}, $config->{frame_len};
+        #Extract record header to pass to upper layer
+        my $rec_head = substr $raw, 0, $c->sizeof('record_hdr_t');
+        
+        #Extract frame
+        $raw = substr $raw, $c->offsetof( 'record_t', 'cadu.frame' ), $c->sizeof('frame_t');
 
-        #Parse frame
-        my $frame_hdr   = $c->unpack('frame_hdr',$raw);
-        my $frame_data_field_hdr= $c->unpack('frame_data_field_hdr',substr($raw, $c->sizeof('frame_hdr')));
-        my $fhp            = $frame_data_field_hdr->{fhp};
+        #Parse frame headers (parsing the complete frame might be time consuming and useless for OID frames)
+        my $frame_hdr = $c->unpack( 'frame_hdr_t', $raw );
+        my $frame_data_field_hdr = $c->unpack( 'frame_data_field_hdr_t', substr($raw, $c->sizeof('frame_hdr_t')));
+        my $fhp = $frame_data_field_hdr->{fhp};
 
         #if we reached the number of frames and we end up on a packet boundary, stop
         return $frame_nr if defined $config->{frame_nr} and $frame_nr >= $config->{frame_nr} and $fhp != 0b11111111111;
@@ -104,22 +101,14 @@ sub read_frames3 {
         next FRAME_DECODE if $fhp == 0b11111111110 and !$idle_frames;
 
         #Execute coderefs
-        $_->( $frame_hdr, $raw, $rec_head ) for @{ $config->{coderefs_frame} };
+        $_->( $c->unpack('frame_t', $raw), $raw, $rec_head ) for @{ $config->{coderefs_frame} };
         next FRAME_DECODE if $fhp == 0b11111111110;
 
-        #Remove Prefix: Primary header and Secondary if there
-        #$sec = $tmframe_header->{'Sec Header'} if exists $tmframe_header->{'Sec Header'};
-        #$offset = $tmframe_header->{Length};
-        #$offset = $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} + 1
-        #  if $sec;
-        $offset=10;
-        $raw = substr $raw, $offset;
-
-        #Remove Suffix: CLCW
-        #$raw = substr( $raw, 0, -4 ) if exists $tmframe->{CLCW};
+        #Extract frame data
+        $raw = substr $raw, $c->offsetof('frame_t','data'), $c->sizeof('frame_t.data');
 
         #Start Packet assembly on frame data
-        $vc = $frame_hdr->{master_channel_id}{vcid};
+        $vc = $frame_hdr->{channel_id}{vcid};
 
         #Frame does not finish packet, append and go to next frame
         if ( $fhp == 0b11111111111 ) {
@@ -130,13 +119,12 @@ sub read_frames3 {
         #There is a packet beginning in this frame, finalize current
         if ( length( $packet_vcid[$vc] ) ) {
             $packet_vcid[$vc] .= substr $raw, 0, $fhp;
-            if ( length( $packet_vcid[$vc] ) >= $TMSourcePacketHeaderLength ) {
-                my $pkt_hdr=$c->unpack('pkt_hdr', $packet_vcid[$vc] );
-                my $g_pkt_len=$pkt_hdr->{pkt_df_length};
+            if ( length( $packet_vcid[$vc] ) >= $c->sizeof('pkt_hdr_t') ) {
+                my $pkt_hdr = $c->unpack( 'pkt_hdr_t', $packet_vcid[$vc] );
+                my $pkt_len = $pkt_hdr->{pkt_df_length};
 
-                if ( length( $packet_vcid[$vc] ) >= $g_pkt_len ) {
-                    my $pkt_data_field_hdr=$c->unpack('pkt_data_field_hdr', substr( $packet_vcid[$vc], $TMSourcePacketHeaderLength ));
-                    $_->( $pkt_hdr,$pkt_data_field_hdr,$raw, $rec_head ) for @{ $config->{coderefs_packet} };
+                if ( length( $packet_vcid[$vc] ) >= $pkt_len ) {
+                    $_->( $c->unpack('pkt_t',$raw), $raw, $rec_head ) for @{ $config->{coderefs_packet} };
                 }
             }
         }
@@ -150,15 +138,14 @@ sub read_frames3 {
             $cont = 0;
 
             #Do we have a full packet header
-            if ( length($raw) >= $TMSourcePacketHeaderLength ) {
-                my $pkt_hdr=$c->unpack('pkt_hdr', $raw);
-                my $g_pkt_len=$pkt_hdr->{pkt_df_length};
+            if ( length($raw) >= $c->sizeof('pkt_hdr_t') ) {
+                my $pkt_hdr = $c->unpack( 'pkt_hdr_t', $raw );
+                my $pkt_len = $pkt_hdr->{pkt_df_length};
 
-                if ( length( $packet_vcid[$vc] ) >= $g_pkt_len ) {
-                    my $pkt_data_field_hdr=$c->unpack('pkt_data_field_hdr', substr( $raw, $TMSourcePacketHeaderLength ));
-                    $_->( $pkt_hdr,$pkt_data_field_hdr,$raw, $rec_head ) for @{ $config->{coderefs_frame} };
-                    substr( $raw, 0, $g_pkt_len ) = '';
-                    $cont=1;
+                if ( length( $raw ) >= $pkt_len ) {
+                    $_->( $c->unpack('pkt_t',$raw), $raw, $rec_head ) for @{ $config->{coderefs_packet} };
+                    substr( $raw, 0, $pkt_len ) = '';
+                    $cont = 1;
                 }
             }
 
@@ -170,7 +157,6 @@ sub read_frames3 {
     close $fin;
     return $frame_nr;
 }
-
 
 require Exporter;
 our @ISA    = qw(Exporter);

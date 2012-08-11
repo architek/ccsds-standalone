@@ -12,7 +12,8 @@ Ccsds::TM::File - Set of utilities to work on CCSDS TM Files
 use Ccsds::Utils qw(tm_verify_crc CcsdsDump hdump);
 use Ccsds::TM::Frame qw($TMFrame);
 use Ccsds::TM::SourcePacket qw($TMSourcePacket $TMSourcePacketHeader $TMSourceSecondaryHeader);
-use Try::Tiny;
+use Data::Dumper;
+
 
 sub dbg {
     my ( $class, $mess, $config ) = @_;
@@ -22,78 +23,80 @@ sub dbg {
     }
 }
 
-#Given a data field binary stream, tries to decode exactly one packet.
-#If a packet is found, return its length or 0 if no valid/complete packet (wrt to length and datas)
-#Crc Check: if crc of non idle packet is incorrect, display error message
-sub _try_decode_pkt {
-    my ( $data, $config ) = @_;
-    my ( $pkt_len, $is_idle, $apid, $tmpacket, $tmpacketh, $catch );
+my $g_pkt_len;
+my $g_pkt_apid;
+my $g_pkt_is_idle;
 
-    #Header
-    try {
-        $catch     = 0;
-        $tmpacketh = $TMSourcePacketHeader->parse($data);
+my $idle_frames;
+my $idle_packets;
+
+sub _decode_pkt_head {
+    my ($data) = @_;
+
+    my $pkt_head   = $TMSourcePacketHeader->parse($data);
+    $g_pkt_len     = $pkt_head->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $pkt_head->{Length};
+    $g_pkt_apid    = $pkt_head->{'Packet Id'}->{'vApid'};
+    $g_pkt_is_idle = $g_pkt_apid == 0b11111111111 ? 1 : 0;
+    $g_pkt_len;
+}
+
+sub _decode_pkt {
+    my ($data,$config) = @_;
+    
+    my $pkt         = $TMSourcePacket->parse($data);
+    my $pkt_head    = $pkt->{'Packet Header'};
+    $g_pkt_len     = $pkt_head->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $pkt_head->{Length};
+    $g_pkt_apid    = $pkt_head->{'Packet Id'}->{'vApid'};
+    $g_pkt_is_idle = $g_pkt_apid == 0b11111111111 ? 1 : 0;
+
+    #Verify CRC
+    if ( $pkt->{'Has Crc'} and !tm_verify_crc( unpack 'H*', substr( $data, 0, $g_pkt_len ) ) ) {
+#        warn "CRC of following packet does not match";
+        #dbg "W", "CRC of following source packet does not match\n", $config;
+        #dbg "debug", unpack( 'H*', $data ) . "\n", $config;
     }
-    catch {
-        #Possible only on short reads
-        #dbg "W" ,"Undecoded Packet Header",$config;
-        $catch = 1;
-    };
-    return 0 if $catch;
 
-    $apid    = $tmpacketh->{'Packet Id'}->{'vApid'};
-    $is_idle = $apid == 0b11111111111 ? 1 : 0;
-    $pkt_len = $tmpacketh->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $tmpacketh->{Length};
-
-    return $pkt_len if $is_idle and !$config->{idle_packets};
-    return 0 if $pkt_len > length($data);
-
-    if ( $config->{output}->{data} ) {
-        dbg "data", CcsdsDump($tmpacketh), $config if $config->{idle_packets} or !$is_idle;
-    }
-
-    #Packet
-    try {
-        $catch    = 0;
-        $tmpacket = $TMSourcePacket->parse($data);
-    }
-    catch {
-        #This should not happen as we have enough bytes
-        #
-        $catch = 1;
-    };
-    return 0 if $catch;
-
-    dbg "data", CcsdsDump( $tmpacket, $config->{ascii} ), $config
-      if $config->{output}->{data} and ( $config->{idle_packets} or !$is_idle );
-
-    #We got a complete packet, verify CRC
-    if ( $tmpacket->{'Has Crc'}
-        and !tm_verify_crc( unpack 'H*', substr( $data, 0, $pkt_len ) ) )
-    {
-        dbg "W", "CRC of following source packet does not match\n", $config;
-        dbg "debug", unpack( 'H*', $data ) . "\n", $config;
-    }
+    #Stop if not interested in idle packets
+    return if $g_pkt_is_idle and !$idle_packets;
 
     #Execute coderefs. Pass decoded packet and raw packet, based on the ccsds length (datafield length-1)
     for ( @{ $config->{coderefs_packet} } ) {
-        my $pkt = substr( $data, 0, $pkt_len );
-        $_->( $tmpacket, $pkt );
+        my $pkt_data = substr( $data, 0, $g_pkt_len );
+        $_->( $pkt,$pkt_data);
+    }
+}
+
+sub read_record {
+    my $raw;
+    my ( $fin, $config ) = @_;
+    if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
+        warn "Incomplete record";
+        return undef;
     }
 
-    return $pkt_len;
+    #If sync, check
+    if ( $config->{has_sync}
+        and substr( $raw, $config->{offset_data} - 4, 4 ) ne "\x1a\xcf\xfc\x1d" )
+    {
+        warn "Record does not contain a SYNC, reading next record";
+        return undef;
+    }
+    return $raw;
 }
 
 sub read_frames {
     my ( $filename, $config ) = @_;
 
     my $frame_nr = 0;
-    my $vc=0;
+    my $vc       = 0;
     my $pkt_len;
     my @packet_vcid = ("") x 128;    # VC 0..127
     my $skip;
+    my $sec;
+    my $offset;
 
-    $skip = $config->{skip} if exists $config->{skip};
+    $g_pkt_len=undef;
+    my $TMSourcePacketHeaderLength=$config->{TMSourcePacketHeaderLength}; 
 
     #Show warnings if user defined a warning subref
     $config->{output}->{W} = 1;
@@ -101,28 +104,23 @@ sub read_frames {
     #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
     $| = 1 if $config->{output}->{debug};
 
+    $idle_frames=$config->{idle_frames}; $idle_packets=$config->{idle_packets};
+
     open my $fin, "<", $filename or die "can not open $filename";
     binmode $fin;
+    
+    if ( exists $config->{skip} ) {
+        $skip = $config->{skip};
+        seek($fin,$skip* $config->{record_len},0);
+    }
 
   FRAME_DECODE:
     while ( !eof $fin ) {
+        
         my $raw;
 
-        # Read a record
-        if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
-            dbg "W", "Fatal: Not a full frame record of " . $config->{record_len} . "\n", $config;
-            return -1;
-        }
-
-        #If sync, check
-        if ( $config->{has_sync} ) {
-            if ( substr( $raw, $config->{offset_data} - 4, 4 ) ne "\x1a\xcf\xfc\x1d" ) {
-                dbg "W", "Record does not contain a SYNC, reading next record\n", $config;
-                next FRAME_DECODE;
-            }
-        }
-
         #Extract frame from record
+        next FRAME_DECODE unless defined( $raw = read_record( $fin, $config ) );
         my $rec_head = substr $raw, 0, $config->{offset_data} - 4;
         $raw = substr $raw, $config->{offset_data}, $config->{frame_len};
 
@@ -134,102 +132,91 @@ sub read_frames {
         #if we reached the number of frames and we end up on a packet boundary, stop
         return $frame_nr if defined $config->{frame_nr} and $frame_nr >= $config->{frame_nr} and $fhp != 0b11111111111;
 
-        #skip n frames
-        if ($skip) {
-            $skip--;
-            next FRAME_DECODE;
-        }
-
         #if we were requested to skip frames, skip until next packet boundary (or OID frame)
         if ( defined $skip ) {
             next FRAME_DECODE if $fhp == 0b11111111111;
             $skip = undef;
         }
+
+#Process frames
         $frame_nr++;
+        
+        if ( exists $tmframe_header->{'Sync Flag'} and $tmframe_header->{'Sync Flag'} ne '0' ) {
+            warn "First Header Pointer undefined for frame $frame_nr!";
+            next FRAME_DECODE;
+        }
+
+#Skip OID frames
+        next FRAME_DECODE if $fhp == 0b11111111110 and !$idle_frames;
 
         #Execute coderefs
         $_->( $tmframe, $raw, $rec_head ) for @{ $config->{coderefs_frame} };
-
-        #Remove CLCW
-        $raw = substr( $raw, 0, -4 ) if exists $tmframe->{CLCW};
-
-        if ( exists $tmframe->{'TM Frame Header'}->{'Sync Flag'} and $tmframe->{'TM Frame Header'}->{'Sync Flag'} ne '0' ) {
-            dbg "W", "First Header Pointer undefined for frame $frame_nr!\n", $config;
-            next;
-        }
-
-        my $sec;    # Secondary header present ?
+        next FRAME_DECODE if $fhp == 0b11111111110;
+        
+        #Remove Prefix: Primary header and Secondary if there
         $sec = $tmframe_header->{'Sec Header'} if exists $tmframe_header->{'Sec Header'};
-
-        $vc = $tmframe_header->{'Virtual Channel Id'};
-        if ( $fhp == 0b11111111110 ) {
-            dbg "data", "Frame $frame_nr is an OID Transfer Frame\n", $config;
-            next;
-        }
-        if ( $config->{output}->{data} ) { dbg "data", CcsdsDump($tmframe_header), $config; }
-        dbg "debug", "Fhp:$fhp\n", $config;
-        dbg "data", "Frame:" . unpack( 'H*', substr( $raw, 0, 6 ) ) . "|" . unpack( 'H*', substr( $raw, 6 ) ) . "|" . "\n", $config;
-
-        #Remove Primary header and Secondary if there
-        my $offset = $tmframe->{'TM Frame Header'}->{Length};
+        $offset = $tmframe_header->{Length};
         $offset += $tmframe->{'TM Frame Secondary Header'}->{'Sec Header Length'} + 1
           if $sec;
         $raw = substr $raw, $offset;
+        
+        #Remove Suffix: CLCW 
+        $raw = substr( $raw, 0, -4 ) if exists $tmframe->{CLCW};
 
-        if ( length $packet_vcid[$vc] ) {
+#Start Packet assembly on frame data
+        $vc = $tmframe_header->{'Virtual Channel Id'};
 
-            #Finish previous packet
-            if ( $fhp == 0b11111111111 ) {
+        #Frame does not finish packet, append and go to next frame
+        if ($fhp == 0b11111111111) {
+            $packet_vcid[$vc] .= $raw;
+            next FRAME_DECODE;
+        }
 
-                #we don't have another packet that begins. this one might end now or on a next frame
-                dbg "debug", "We have pending data and current frame has no data header\n", $config;
-                $packet_vcid[$vc] .= $raw;
-                next;
-            }
-            else {
-
-                #stop at the next packet
-                dbg "debug", "We have pending data and current frame has a data header\n", $config;
-                my $raw_packet = $packet_vcid[$vc] . substr $raw, 0, $fhp;
-                dbg "debug", "After appending all packets slice, we have a packet of length " . length $raw_packet . "\n", $config;
-                if ( !_try_decode_pkt( $raw_packet, $config ) ) {
-                    dbg "W", "Corrupted packet - using FHP to resync\n", $config;
-                    dbg "debug",
-                        "old data were:"
-                      . unpack( 'H*', $packet_vcid[$vc] )
-                      . "\nComplete concatenated data:"
-                      . unpack( 'H*', $raw_packet )
-                      . "\n", $config;
+        #There is a packet beginning in this frame, finalize current
+        if (length($packet_vcid[$vc])) { 
+            $packet_vcid[$vc] .= substr $raw, 0, $fhp; 
+            if (length($packet_vcid[$vc]) >= $TMSourcePacketHeaderLength) {
+                _decode_pkt_head($packet_vcid[$vc]);
+                #Idle packets normally terminate a VC stream
+                if ($g_pkt_is_idle) {
+                    $packet_vcid[$vc]="";
+                    next FRAME_DECODE 
+                }
+                if (length($packet_vcid[$vc]) >= $g_pkt_len) {
+                    _decode_pkt( substr($packet_vcid[$vc],0,$g_pkt_len) , $config); 
                 }
             }
         }
 
-        # We have no data remaining, fetch next packet pointed to by First Header Pointer
+        #Begin decoding following packets
         $raw = substr $raw, $fhp;
-        $packet_vcid[$vc] = "";
+        $packet_vcid[$vc]="";
+      
+        my $cont;
         do {
-            if ( ( $pkt_len = _try_decode_pkt( $raw, $config ) ) == 0 ) {
-
-                #We got an incomplete packet, not yet the full packet.. store it. rem: try catch error is in $_
-                $packet_vcid[$vc] = $raw;
-                dbg "debug", "cut data:" . unpack( 'H*', $packet_vcid[$vc] ) . " length is " . length( $packet_vcid[$vc] ) . "\n",
-                  $config;
-                next FRAME_DECODE;
+            $cont=0;
+            #Do we have a full packet header
+            if ( length($raw) >= $TMSourcePacketHeaderLength ) {
+                _decode_pkt_head($raw);
+                #Idle packets normally terminate a VC stream
+                if ($g_pkt_is_idle) {
+                    $packet_vcid[$vc]="";
+                    next FRAME_DECODE 
+                }
+                #Do we have the full packet
+                if (length($raw) >= $g_pkt_len) {
+                    #Yes, decode packet
+                    _decode_pkt( substr($raw,0,$g_pkt_len) , $config); 
+                    substr( $raw, 0, $g_pkt_len ) = '';
+                    $cont=1;
+                    #Go on decoding packets
+                }
             }
-
-            #go forward in the frame to the next packet
-            dbg "debug", "Removing Length " . $pkt_len . " bytes: " . unpack( 'H*', substr $raw, 0, $pkt_len ) . "\n", $config;
-            substr( $raw, 0, $pkt_len ) = '';
-            dbg "debug", "Remains  <" . unpack( 'H*', $raw ) . ">" . "\n", $config;
-        } while length $raw;
+            #Not complete header or packet, push for following frames
+        } while ($cont);
+        $packet_vcid[$vc]= $raw;
     }
 
-    #End of file, try to decode last packet that has split on the previous frame(s) and until the last byte of this frame
-    if ( length $packet_vcid[$vc] ) {
-        if ( !_try_decode_pkt( $packet_vcid[$vc], $config ) ) {
-            dbg "W", "Last packet corrupt and can't resync as there is no more frame\n", $config;
-        }
-    }
     close $fin;
     return $frame_nr;
 }
@@ -270,6 +257,7 @@ The module expects a filename and a configuration describing:
      has_sync  => 1,
      ascii => 1,             #hex and ascii output of packet data
      idle_packets => 0,      #Show idle packets
+     idle_frames => 0,      #Show idle frames
  #Callbacks to execute at each frame
      #coderefs_frame =>  [ \&frame_print_header ],
  #Callbacks to execute at each packet

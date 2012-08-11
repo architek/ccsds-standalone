@@ -6,9 +6,10 @@ BEGIN{
 
 package ref1;
 
-our $tmp ="0904C182002C10031900000000931AE4060000000000000000003C0B81003CA18E0000000000000000003C0B81003CA18E4FE6";
+our $tmp ="0904C182002C10031900000000931AE44141414141414141414141414141414141414141414141414141414141414141414FE6";
 our $r_tmp = {
           'Packet Header' => {
+                               'Length' => 6,
                                'Packet Sequence Control' => {
                                                               'Source Seq Count' => 386,
                                                               'Packet Length' => 44,
@@ -52,45 +53,12 @@ our $r_tmp = {
                                                                                            'PUS Version Number' => 1
                                                                                          }
                                                                 },
-                                   'Source Data' => [
-                                                      6,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      60,
-                                                      11,
-                                                      129,
-                                                      0,
-                                                      60,
-                                                      161,
-                                                      142,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      60,
-                                                      11,
-                                                      129,
-                                                      0,
-                                                      60,
-                                                      161,
-                                                      142
-                                                    ]
+                                   'Source Data' => 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
                                  }
         };
 
 our $r_tmph= {
+          'Length' => 6,
           'Packet Sequence Control' => {
                                          'Source Seq Count' => 386,
                                          'Packet Length' => 44,

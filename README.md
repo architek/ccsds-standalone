@@ -50,8 +50,9 @@ Please report any bugs or feature requests to `teebeenator at gmail.com`
 
 # SUPPORT
 
-You can find documentation for this module with the perldoc command.
+You can find documentation for this module in the manpage or with the perldoc command.
 
+    man Ccsds
     perldoc Ccsds
 
 https://github.com/architek/ccsds-standalone/wiki

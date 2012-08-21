@@ -29,7 +29,7 @@ use constant {
 #This contains data found before EB90
 my $rec_head;
 
-sub read_frames {
+sub read_tc_frames {
     my ( $filename, $config ) = @_;
     $config->{debug} = 0 unless exists $config->{debug};
 
@@ -145,7 +145,7 @@ sub search {
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(read_frames);
+our @EXPORT = qw(read_tc_frames);
 
 =head1 AUTHOR
 

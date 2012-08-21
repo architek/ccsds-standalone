@@ -21,6 +21,7 @@ sub dbg {
         $config->{coderefs_output}->($mess) if $config->{coderefs_output};
         warn "$mess";
     }
+    return;
 }
 
 my $g_pkt_len;
@@ -37,7 +38,7 @@ sub _decode_pkt_head {
     $g_pkt_len     = $pkt_head->{'Packet Sequence Control'}->{'Packet Length'} + 1 + $pkt_head->{Length};
     $g_pkt_apid    = $pkt_head->{'Packet Id'}->{'vApid'};
     $g_pkt_is_idle = $g_pkt_apid == 0b11111111111 ? 1 : 0;
-    $g_pkt_len;
+    return $g_pkt_len;
 }
 
 sub _decode_pkt {
@@ -50,28 +51,29 @@ sub _decode_pkt {
     $g_pkt_is_idle = $g_pkt_apid == 0b11111111111 ? 1 : 0;
 
     #Verify CRC
-    if ( $pkt->{'Has Crc'} and !tm_verify_crc( unpack 'H*', substr( $data, 0, $g_pkt_len ) ) ) {
+    if ( $pkt->{'Has Crc'} && !tm_verify_crc( unpack 'H*', substr( $data, 0, $g_pkt_len ) ) ) {
 #        warn "CRC of following packet does not match";
         #dbg "W", "CRC of following source packet does not match\n", $config;
         #dbg "debug", unpack( 'H*', $data ) . "\n", $config;
     }
 
     #Stop if not interested in idle packets
-    return if $g_pkt_is_idle and !$idle_packets;
+    return if $g_pkt_is_idle && !$idle_packets;
 
     #Execute coderefs. Pass decoded packet and raw packet, based on the ccsds length (datafield length-1)
     for ( @{ $config->{coderefs_packet} } ) {
         my $pkt_data = substr( $data, 0, $g_pkt_len );
         $_->( $pkt,$pkt_data);
     }
+    return;
 }
 
 sub read_record {
-    my $raw;
     my ( $fin, $config ) = @_;
+    my $raw;
     if ( read( $fin, $raw, $config->{record_len} ) != $config->{record_len} ) {
         warn "Incomplete record";
-        return undef;
+        return 0;
     }
 
     #If sync, check
@@ -79,7 +81,7 @@ sub read_record {
         and substr( $raw, $config->{offset_data} - 4, 4 ) ne "\x1a\xcf\xfc\x1d" )
     {
         warn "Record does not contain a SYNC, reading next record";
-        return undef;
+        return 0;
     }
     return $raw;
 }
@@ -89,7 +91,6 @@ sub read_frames {
 
     my $frame_nr = 0;
     my $vc       = 0;
-    my $pkt_len;
     my @packet_vcid = ("") x 128;    # VC 0..127
     my $skip;
     my $sec;
@@ -102,7 +103,7 @@ sub read_frames {
     $config->{output}->{W} = 1;
 
     #Remove buffering - This slows down a lot the process but helps to correlate errors to normal output
-    $| = 1 if $config->{output}->{debug};
+    local $| = 1 if $config->{output}->{debug};
 
     $idle_frames=$config->{idle_frames}; $idle_packets=$config->{idle_packets};
 
@@ -120,7 +121,7 @@ sub read_frames {
         my $raw;
 
         #Extract frame from record
-        next FRAME_DECODE unless defined( $raw = read_record( $fin, $config ) );
+        next FRAME_DECODE unless $raw = read_record( $fin, $config );
         my $rec_head = substr $raw, 0, $config->{offset_data} - 4;
         $raw = substr $raw, $config->{offset_data}, $config->{frame_len};
 
@@ -147,7 +148,7 @@ sub read_frames {
         }
 
 #Skip OID frames
-        next FRAME_DECODE if $fhp == 0b11111111110 and !$idle_frames;
+        next FRAME_DECODE if $fhp == 0b11111111110 && !$idle_frames;
 
         #Execute coderefs
         $_->( $tmframe, $raw, $rec_head ) for @{ $config->{coderefs_frame} };
@@ -207,7 +208,7 @@ sub read_frames {
                 if (length($raw) >= $g_pkt_len) {
                     #Yes, decode packet
                     _decode_pkt( substr($raw,0,$g_pkt_len) , $config); 
-                    substr( $raw, 0, $g_pkt_len ) = '';
+                    substr( $raw, 0, $g_pkt_len , '') ;
                     $cont=1;
                     #Go on decoding packets
                 }

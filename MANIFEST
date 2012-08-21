@@ -15,6 +15,6 @@ lib/Ccsds/TC/File.pm
 t/00-load.t
 t/01-crc.t
 t/02-decode.t
-t/custo-gio.pm
+t/Custo-gio.pm
 t/pod.t
 t/ref1.pm

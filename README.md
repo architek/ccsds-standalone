@@ -1,11 +1,10 @@
-=head1 NAME
+# NAME
 
 Ccsds - Module used to decode or encode CCSDS TC/TM
 
 
-=cut
 
-=head1 SYNOPSIS
+# SYNOPSIS
 
 This library allows decoding and encoding of CCSDS stream defined in the PSS/ECSS standards.
 The current module Ccsds.pm only exports $VERSION which can be retried to know the version of the library. 
@@ -38,24 +37,27 @@ The current module Ccsds.pm only exports $VERSION which can be retried to know t
     $data = $TMSourcePacket->build($decoded);
     patch_crc(\$data);
     
+
     ...
 
-=head1 AUTHOR
+# AUTHOR
 
-Laurent KISLAIRE, C<< <teebeenator at gmail.com> >>
+Laurent KISLAIRE, `<teebeenator at gmail.com>`
 
-=head1 BUGS
+# BUGS
 
-Please report any bugs or feature requests to C<teebeenator at gmail.com>
+Please report any bugs or feature requests to `teebeenator at gmail.com`
 
-=head1 SUPPORT
+# SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds
 
+    https://github.com/architek/ccsds-standalone/wiki
 
-=head1 LICENSE AND COPYRIGHT
+
+# LICENSE AND COPYRIGHT
 
 Copyright 2010 Laurent KISLAIRE.
 
@@ -67,5 +69,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 
 
-=cut
 

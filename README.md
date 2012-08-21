@@ -54,7 +54,7 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Ccsds
 
-    https://github.com/architek/ccsds-standalone/wiki
+https://github.com/architek/ccsds-standalone/wiki
 
 
 # LICENSE AND COPYRIGHT

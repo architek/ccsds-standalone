@@ -52,7 +52,7 @@ sub _decode_pkt {
 
     #Verify CRC
     if ( $pkt->{'Has Crc'} && !tm_verify_crc( unpack 'H*', substr( $data, 0, $g_pkt_len ) ) ) {
-#        warn "CRC of following packet does not match";
+        warn "CRC of following packet does not match";
         #dbg "W", "CRC of following source packet does not match\n", $config;
         #dbg "debug", unpack( 'H*', $data ) . "\n", $config;
     }
@@ -186,6 +186,13 @@ sub read_frames {
                 if (length($packet_vcid[$vc]) >= $g_pkt_len) {
                     _decode_pkt( substr($packet_vcid[$vc],0,$g_pkt_len) , $config); 
                 }
+                if (length($packet_vcid[$vc]) > $g_pkt_len) {
+                    warn "Garbage of ",length($packet_vcid[$vc])-$g_pkt_len, " bytes after packet that split on several frames - using FHP to resync\n";
+                }
+            } else {
+                #The following warnings might also happen in the very unlikely event that the previous frame
+                #had one single idle packet ending the frame and it got truncated. Shit happens ;)
+                warn "Packet that split on several frames is less than a header - Using FHP to resync\n";
             }
         }
 

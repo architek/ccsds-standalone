@@ -58,7 +58,8 @@ sub _decode_pkt {
     }
 
     #Stop if not interested in idle packets
-    return if $g_pkt_is_idle && !$idle_packets;
+    return if $g_pkt_is_idle;
+    #return if $g_pkt_is_idle && !$idle_packets;
 
     #Execute coderefs. Pass decoded packet and raw packet, based on the ccsds length (datafield length-1)
     for ( @{ $config->{coderefs_packet} } ) {
@@ -180,8 +181,8 @@ sub read_frames {
                 _decode_pkt_head($packet_vcid[$vc]);
                 #Idle packets normally terminate a VC stream
                 if ($g_pkt_is_idle) {
-                    $packet_vcid[$vc]="";
-                    next FRAME_DECODE 
+#                    $packet_vcid[$vc]="";
+#                    next FRAME_DECODE 
                 }
                 if (length($packet_vcid[$vc]) >= $g_pkt_len) {
                     _decode_pkt( substr($packet_vcid[$vc],0,$g_pkt_len) , $config); 
@@ -208,8 +209,8 @@ sub read_frames {
                 _decode_pkt_head($raw);
                 #Idle packets normally terminate a VC stream
                 if ($g_pkt_is_idle) {
-                    $packet_vcid[$vc]="";
-                    next FRAME_DECODE 
+#                    $packet_vcid[$vc]="";
+#                    next FRAME_DECODE 
                 }
                 #Do we have the full packet
                 if (length($raw) >= $g_pkt_len) {

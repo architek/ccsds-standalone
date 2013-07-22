@@ -58,9 +58,15 @@ our $Cltu = Struct(
 
 );
 
+our $CltuHead = Struct('CltuHead',
+    Magic("\xEB\x90"),
+    $TCFrameHeader,
+    $TCSegmentHeader,
+    );
+
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw($TCFrameHeader $TCFrame $TCSegmentHeader $Cltu);
+our @EXPORT = qw($TCFrameHeader $TCFrame $TCSegmentHeader $Cltu $CltuHead);
 
 =head1 SYNOPSIS
 

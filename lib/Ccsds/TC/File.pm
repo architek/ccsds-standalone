@@ -12,8 +12,8 @@ Ccsds::TM::File - Set of utilities to work on CCSDS TC Files
 use Data::Dumper;
 use Ccsds::TC::Printer qw(TCPrint CltuPrint);
 use Ccsds::TC::Frame;
-use Ccsds::TC::SourcePacket qw($TCSourcePacket);
-use Ccsds::Utils qw(rs_deintbin);
+use Ccsds::TC::SourcePacket qw($TCSourcePacket $TCPacketHeader);
+use Ccsds::Utils qw(rs_deintbin init_descrambler descramble);
 
 use constant {
     FIRST             => 1,    # For segment state machine
@@ -31,6 +31,7 @@ my $rec_head;
 
 sub read_tc_frames {
     my ( $filename, $config ) = @_;
+    my $tcpacket; my $cltu;
     $config->{debug} = 0 unless exists $config->{debug};
 
 #$Data::ParseBinary::print_debug_info = 1 if $odebug;
@@ -42,9 +43,14 @@ sub read_tc_frames {
     my $segments_data = ();
     open my $fin, "<", $filename or die "can not open $filename";
     binmode $fin;
+    if ($config->{scrambled}) {
+        init_descrambler();
+    } else {
+        die "Use other version\n";
+    }
 
     while ( !eof $fin ) {
-        my ( $headbuf, $buf );
+        my ( $headbuf, $buf , $headbuf_scr);
 
         last if search( $fin, 2 ) < 0;
 
@@ -53,35 +59,28 @@ sub read_tc_frames {
             warn "Fatal: Not a full header\n";
             return -1;
         }
-        my $fh = $TCFrameHeader->parse( substr( $headbuf, 2 ) );
-        my $remain = $fh->{'Cltu Length'};
+        #Keep copy for later descrambling
+        my $descrambled_headers = descramble(substr($headbuf,2));
+        my $head = $TCFrameHeader->parse($descrambled_headers);
+        print Dumper $head if $config->{debug};
+        my $remain = $head->{'Cltu Length'};
+        read( $fin, $buf, $remain );
+        $buf = substr($headbuf,2) . $buf;
+        $buf = rs_deintbin( 7, $buf, $head->{'Frame Length'} + 1 ) ;    #We use BCH Length 7
+        $buf = descramble($buf);
+        $buf = pack('H*',"EB90") . $buf;
+        $cltu=$CltuHead->parse($buf);
 
-        #print "Frame length " , $fh->{'Frame Length'} , "\n";
-        if ( read( $fin, $buf, $remain ) != $remain ) {
-            warn "Fatal: Not a full frame\n";
-            return -1;
-        }
-        $buf = $headbuf . $buf;
-
-        #Decode the complete CLTU, incl. CBH
-        my $cltu = $Cltu->parse($buf);
-        substr( $buf, 0, 2 ) = "";    # Remove EB90h
-
-        #Print decoded cltu, but not the still undecoded part
-        $cltu->{'Cltu Data'} = ();
         my $mapid   = $cltu->{'Segment Header'}->{'MapId'};
         my $bypass  = $cltu->{'TC Frame Header'}->{'ByPass'};
         my $Scid    = $cltu->{'TC Frame Header'}->{'SpaceCraftId'};
         my $Vcid    = $cltu->{'TC Frame Header'}->{'Virtual Channel Id'};
         my $FLength = $cltu->{'TC Frame Header'}->{'Frame Length'};
-        print
+        warn  
 "Decoded Frame and included Segment: MapId=$mapid, Bypass=$bypass, Scid=$Scid, Vcid=$Vcid, Frame Length=$FLength\n"
           if $config->{debug};
 
-        my $cltu_data =
-          rs_deintbin( 7, $buf,
-            $cltu->{'TC Frame Header'}->{'Frame Length'} + 1 )
-          ;    #We use BCH Length 7
+        my $cltu_data = substr($buf,2);
 
         #we now have CLTU *data* , BCH removed
         $_->( $cltu, $cltu_data, $rec_head ) for @{ $config->{coderefs_cltu} };
@@ -112,10 +111,16 @@ sub read_tc_frames {
         }
 
      #This is a STANDalone segment or LAST segment, decode the overall TC packet
-        my $tcpacket = $TCSourcePacket->parse($segments_data);
         $nr++;
-
-        $_->( $tcpacket, $segments_data ) for @{ $config->{coderefs_packet} };
+        warn "Trying to decode packet:", unpack('H*', $segments_data) if $config->{debug};
+        eval { $tcpacket = $TCSourcePacket->parse($segments_data) };
+        if ($@) {
+            warn "Couldn't decode TC Source packet, error was:\n", $@, "\n";
+            eval { $tcpacket = $TCPacketHeader->parse($segments_data) };
+            warn "Header is:", Dumper($tcpacket), "\n";
+        } else {
+            $_->( $tcpacket, $segments_data ) for @{ $config->{coderefs_packet} };
+        }
         $segments_data = ();
 
     }

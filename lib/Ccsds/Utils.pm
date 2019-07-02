@@ -38,7 +38,7 @@ sub verify_crc {
 
     my $sdata = pack( "H*", $data );
     my $crc = calc_crc $sdata;
-    printf "Given Crc:%x\nCalculated Crc:%x\n", $crc_in, $crc if $::odebug;
+    printf "Given Crc:%08x\nCalculated Crc:%08x\n", $crc_in, $crc if $::odebug;
     return $crc eq $crc_in;
 }
 
